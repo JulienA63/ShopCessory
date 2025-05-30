@@ -1,12 +1,48 @@
-<?php include 'partials/header.php'; ?>
-<h2>Bienvenue sur ShopCessory</h2>
-<p>Veuillez vous connecter ou créer un compte pour continuer.</p>
+<?php
+// src/views/home.php
+// Les variables $pageTitle et $products sont disponibles.
+?>
 
-<a href="../Controllers/login.php">
-    <button>Se connecter</button>
-</a>
-<a href="../Controllers/register.php">
-    <button>S'inscrire</button>
-</a>
+<h2>Nos derniers articles !</h2>
 
-<?php include 'partials/footer.php'; ?>
+<?php if (!empty($products)): ?>
+    <div class="product-list">
+        <?php foreach ($products as $product): ?>
+            <div class="product-item">
+                <div>
+                    <?php if (!empty($product['image_path'])): ?>
+                        <img src="<?php echo PRODUCT_IMAGE_BASE_URL . htmlspecialchars($product['image_path']); ?>" 
+                             alt="<?php echo htmlspecialchars($product['title']); ?>">
+                    <?php else: ?>
+                        <div class="product-no-image">
+                            <span>Pas d'image</span>
+                        </div>
+                    <?php endif; ?>
+
+                    <h3>
+                        <a href="<?php echo INDEX_FILE_PATH; ?>?url=product_detail&id=<?php echo $product['id']; ?>">
+                            <?php echo htmlspecialchars($product['title']); ?>
+                        </a>
+                    </h3>
+                    <p>
+                        <?php 
+                        $description = htmlspecialchars($product['description']);
+                        if (strlen($description) > 80) {
+                            echo substr($description, 0, 80) . '...';
+                        } else {
+                            echo $description;
+                        }
+                        ?>
+                    </p>
+                </div>
+                <div>
+                    <p><strong>Prix :</strong> <?php echo htmlspecialchars(number_format($product['price'], 2, ',', ' ')); ?> €</p>
+                    <p><small>Ajouté le : <?php echo date('d/m/Y H:i', strtotime($product['created_at'])); ?></small></p>
+                    <a href="<?php echo INDEX_FILE_PATH; ?>?url=product_detail&id=<?php echo $product['id']; ?>" class="button-details">Voir détails</a>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+<?php else: ?>
+    <p>Aucun article n'est actuellement en vente. Soyez le premier à <a href="<?php echo INDEX_FILE_PATH; ?>?url=product_add">vendre un article</a> !</p>
+<?php endif; ?>

@@ -1,0 +1,232 @@
+/* public/css/style.css */
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+header {
+    background: #333;
+    color: #fff;
+    padding: 1rem 0;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+nav {
+    margin-top: 10px;
+}
+
+nav a {
+    color: #fff;
+    text-decoration: none;
+    padding: 5px 15px;
+}
+
+nav a:hover {
+    background-color: #555;
+}
+
+nav span { /* Pour le message "Bienvenue..." */
+    color: #fff;
+    padding: 5px 15px;
+}
+
+main {
+    width: 80%;
+    margin: 20px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    background: #333;
+    color: #fff;
+    margin-top: 30px;
+}
+
+/* Styles pour les formulaires */
+form div {
+    margin-bottom: 15px;
+}
+
+form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+form input[type="text"],
+form input[type="password"],
+form input[type="number"],
+form input[type="file"],
+form textarea {
+    width: calc(100% - 22px); /* Prend en compte padding et bordure */
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box; /* Important pour que padding et border ne s'ajoutent pas à la width */
+}
+
+form textarea {
+    height: 100px;
+    resize: vertical;
+}
+
+form button[type="submit"],
+.button-like { /* Classe pour les liens stylés comme des boutons */
+    display: inline-block;
+    background: #007bff;
+    color: #fff;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 1em;
+}
+
+form button[type="submit"]:hover,
+.button-like:hover {
+    background: #0056b3;
+}
+
+/* Spécifiquement pour les liens/boutons que nous avons ajoutés */
+.button-details,
+.button-back,
+.button-delete {
+    display: inline-block;
+    padding: 8px 12px;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+.button-details { background-color: #007bff; }
+.button-details:hover { background-color: #0056b3; }
+
+.button-back { background-color: #6c757d; }
+.button-back:hover { background-color: #545b62; }
+
+.button-delete { background-color: #dc3545; }
+.button-delete:hover { background-color: #c82333; }
+
+
+/* Styles pour la liste des produits */
+.product-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Espace entre les produits */
+    justify-content: center; /* Centre les produits s'ils ne remplissent pas toute la ligne */
+}
+
+.product-item {
+    border: 1px solid #ddd;
+    padding: 15px;
+    width: 280px; /* ou une largeur en % pour plus de fluidité */
+    background-color: #fff;
+    box-shadow: 2px 2px 5px #eee;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-radius: 4px;
+}
+
+.product-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover; /* Assure que l'image couvre l'espace sans être déformée */
+    margin-bottom: 10px;
+    border-radius: 4px 4px 0 0;
+}
+
+.product-item h3 {
+    font-size: 1.2em;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+.product-item h3 a {
+    text-decoration: none;
+    color: #333;
+}
+.product-item h3 a:hover {
+    color: #007bff;
+}
+
+.product-item p {
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+.product-item p small {
+    color: #777;
+}
+
+
+/* Styles pour la page de détail du produit */
+.product-detail img {
+    max-width: 100%;
+    max-height: 400px; /* Limite la hauteur maximale */
+    display: block; /* Pour centrer avec margin auto si nécessaire */
+    margin: 0 auto 20px auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    object-fit: contain; /* Pour voir l'image entière sans la couper */
+}
+.product-description-box {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    white-space: pre-wrap; /* Conserve les sauts de ligne et espaces de la description */
+}
+.owner-options {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #eef;
+    border: 1px solid #ddf;
+    border-radius: 4px;
+}
+
+
+/* Messages de statut/erreur */
+.message {
+    padding: 10px;
+    margin: 15px 0;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+.success-message {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+.error-message {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+/* Pour les listes d'erreurs de validation */
+h1 + ul { /* Cible un ul qui suit directement un h1 (souvent nos erreurs) */
+    list-style-type: none;
+    padding-left: 0;
+}
+h1 + ul > li {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    padding: 8px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+}
