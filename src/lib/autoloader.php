@@ -3,25 +3,18 @@
 
 function registerAppAutoloader() {
     spl_autoload_register(function ($className) {
-        // On cherche d'abord dans les contrôleurs
-        $file = APP_PATH . '/controllers/' . $className . '.php';
-        if (file_exists($file)) {
-            require_once $file;
-            return;
-        }
+        $paths = [
+            APP_PATH . '/controllers/',
+            APP_PATH . '/models/', // Pour quand tu auras des modèles
+            APP_PATH . '/lib/'     // Pour d'autres classes utilitaires
+        ];
 
-        // Puis dans les modèles (pour plus tard)
-        $file = APP_PATH . '/models/' . $className . '.php';
-        if (file_exists($file)) {
-            require_once $file;
-            return;
-        }
-
-        // Puis dans lib (pour d'autres fonctions/classes utilitaires si besoin)
-        $file = APP_PATH . '/lib/' . $className . '.php';
-        if (file_exists($file)) {
-            require_once $file;
-            return;
+        foreach ($paths as $path) {
+            $file = $path . $className . '.php';
+            if (file_exists($file)) {
+                require_once $file;
+                return;
+            }
         }
     });
 }

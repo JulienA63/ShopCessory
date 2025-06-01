@@ -2,23 +2,22 @@
 // src/views/admin/users_list.php
 ?>
 <h2>Gestion des Utilisateurs</h2>
+<div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+    <a href="<?php echo INDEX_FILE_PATH; ?>?url=admin_user_create_form" class="button-like">Créer un nouvel utilisateur</a>
+    <form action="<?php echo INDEX_FILE_PATH; ?>" method="GET" style="display: flex; gap: 10px;">
+        <input type="hidden" name="url" value="admin_users_list">
+        <input type="text" name="search_term" placeholder="Rechercher..." value="<?php echo isset($searchTerm) ? htmlspecialchars($searchTerm) : ''; ?>" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 250px;">
+        <button type="submit" class="button-like" style="background-color: #28a745;">Rechercher</button>
+        <?php if (isset($searchTerm) && $searchTerm !== ''): ?>
+            <a href="<?php echo INDEX_FILE_PATH; ?>?url=admin_users_list" class="button-like" style="background-color: #6c757d;">Effacer</a>
+        <?php endif; ?>
+    </form>
+</div>
 
-<p><a href="<?php echo INDEX_FILE_PATH; ?>?url=admin_user_create_form" class="button-like">Créer un nouvel utilisateur</a></p>
-
-<?php // Afficher les messages de statut/erreur (simpliste pour l'instant)
-if (isset($_GET['status'])) {
-    if ($_GET['status'] === 'created') echo "<p class='message success-message'>Utilisateur créé avec succès.</p>";
-    if ($_GET['status'] === 'updated') echo "<p class='message success-message'>Utilisateur mis à jour avec succès.</p>";
-    if ($_GET['status'] === 'deleted') echo "<p class='message success-message'>Utilisateur supprimé avec succès.</p>";
-}
-if (isset($_GET['error'])) {
-    if ($_GET['error'] === 'cannot_delete_self') echo "<p class='message error-message'>Vous ne pouvez pas supprimer votre propre compte administrateur.</p>";
-    else echo "<p class='message error-message'>Une erreur s'est produite.</p>";
-}
-?>
+<?php // Affichage des messages flash se fait via display_flash_messages() dans le layout ?>
 
 <?php if (!empty($users)): ?>
-    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
         <thead>
             <tr style="background-color: #f2f2f2;">
                 <th>ID</th><th>Prénom</th><th>Nom</th><th>Nom d'utilisateur</th><th>Rôle</th><th>Inscrit le</th><th>Actions</th>
@@ -34,22 +33,21 @@ if (isset($_GET['error'])) {
                     <td><?php echo htmlspecialchars($user['role']); ?></td>
                     <td><?php echo date('d/m/Y H:i', strtotime($user['created_at'])); ?></td>
                     <td>
-                        <a href="<?php echo INDEX_FILE_PATH; ?>?url=admin_user_edit_form&id=<?php echo $user['id']; ?>">Modifier</a> |
-                        <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] != $user['id']): // Ne pas afficher le lien de suppression pour soi-même ?>
+                        <a href="<?php echo INDEX_FILE_PATH; ?>?url=admin_user_edit_form&id=<?php echo $user['id']; ?>" class="button-like" style="background-color: #ffc107; color: #212529; padding: 5px 10px; font-size: 0.9em;">Modifier</a>
+                        <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] != $user['id']): ?>
                         <a href="<?php echo INDEX_FILE_PATH; ?>?url=admin_user_delete&id=<?php echo $user['id']; ?>" 
-                           onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action supprimera aussi toutes ses annonces.');"
-                           class="button-delete">Supprimer</a>
+                           onclick="return confirm('Sûr de supprimer cet utilisateur ? Ses annonces seront aussi supprimées.');"
+                           class="button-delete" style="padding: 5px 10px; font-size: 0.9em;">Supprimer</a>
                         <?php else: echo " (Soi-même)"; endif; ?>
                     </td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
     </table>
-    <style> /* Styles temporaires pour la table */
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    </style>
+    <style> th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } </style>
+<?php elseif (isset($searchTerm) && $searchTerm !== ''): ?>
+    <p>Aucun utilisateur pour "<?php echo htmlspecialchars($searchTerm); ?>".</p>
 <?php else: ?>
-    <p>Aucun utilisateur trouvé.</p>
+    <p>Aucun utilisateur.</p>
 <?php endif; ?>
-
 <p style="margin-top: 20px;"><a href="<?php echo INDEX_FILE_PATH; ?>?url=admin_dashboard">&laquo; Retour au tableau de bord Admin</a></p>

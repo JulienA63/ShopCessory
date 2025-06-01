@@ -23,6 +23,19 @@ function handleRoute($url) {
     } elseif ($url === 'dashboard') {
         $userController = new UserController();
         $userController->showDashboard();
+    } elseif ($url === 'forgot_password') { 
+        $userController = new UserController();
+        $userController->showForgotPasswordForm();
+    } elseif ($url === 'forgot_password_request' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $userController = new UserController();
+        $userController->processForgotPasswordRequest();
+    } elseif ($url === 'reset_password_form') { // Affiche le formulaire de nouveau mot de passe
+        $token = isset($_GET['token']) ? $_GET['token'] : '';
+        $userController = new UserController();
+        $userController->showResetPasswordForm($token); // Nouvelle méthode
+    } elseif ($url === 'reset_password_process' && $_SERVER['REQUEST_METHOD'] === 'POST') { // Traite le nouveau mot de passe
+        $userController = new UserController();
+        $userController->processResetPassword(); // Nouvelle méthode
     } elseif ($url === 'product_add') {
         $productController = new ProductController();
         $productController->showAddForm();
@@ -65,14 +78,14 @@ function handleRoute($url) {
         $productId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         $adminController = new AdminController();
         $adminController->deleteProductByAdmin($productId);
-    } elseif ($url === 'admin_product_edit_form') { // Afficher le formulaire d'édition de produit (admin)
+    } elseif ($url === 'admin_product_edit_form') {
         $productId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         $adminController = new AdminController();
-        $adminController->showProductEditForm($productId); // Nouvelle méthode
-    } elseif ($url === 'admin_product_edit_process' && $_SERVER['REQUEST_METHOD'] === 'POST') { // Traiter la modification de produit (admin)
+        $adminController->showProductEditForm($productId);
+    } elseif ($url === 'admin_product_edit_process' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $productId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         $adminController = new AdminController();
-        $adminController->processProductEdit($productId); // Nouvelle méthode
+        $adminController->processProductEdit($productId);
     } elseif ($url === 'contact') {
         echo "Page de contact (à créer plus tard).";
     } else {
