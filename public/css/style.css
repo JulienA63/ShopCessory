@@ -9,6 +9,7 @@
     --color-primary: #007bff; /* Bleu primaire vibrant */
     --color-primary-darker: #0056b3;
     --color-secondary: #6c757d; /* Gris neutre pour texte secondaire, bordures */
+    --color-secondary-hover-color: #545b62;
     --color-success: #198754;   /* Vert pour succès */
     --color-danger: #dc3545;    /* Rouge pour erreurs/suppression */
     --color-warning: #ffc107;   /* Jaune/Orange pour avertissements */
@@ -73,17 +74,17 @@ header {
     padding: var(--spacing-unit) 0;
     text-align: center;
     box-shadow: var(--box-shadow-sm);
-    position: sticky; /* Peut être utile si tu veux un header fixe */
+    position: sticky; 
     top: 0;
     z-index: 1000;
 }
 header h1 {
     margin: 0;
-    font-size: calc(1.375rem + 1.5vw); /* Taille de police responsive */
-    font-weight: 300;
+    font-size: calc(1.375rem + 1.5vw); 
+    font-weight: 300; 
     letter-spacing: -0.5px;
 }
-@media (min-width: 1200px) { header h1 { font-size: 2.5rem; } } /* Taille max pour h1 */
+@media (min-width: 1200px) { header h1 { font-size: 2.5rem; } } 
 
 header h1 a { color: inherit; text-decoration: none; }
 
@@ -91,7 +92,7 @@ nav {
     margin-top: calc(var(--spacing-unit) / 2);
 }
 nav a {
-    color: #ced4da; /* Liens de nav un peu plus discrets */
+    color: #ced4da; 
     padding: 0.5rem 1rem;
     margin: 0 0.2rem;
     border-radius: var(--border-radius);
@@ -102,11 +103,11 @@ nav a:hover, nav a.active {
     color: var(--text-color-light);
     text-decoration: none;
 }
-nav span { /* Message "Bienvenue..." */
+nav span { 
     color: var(--text-muted);
     padding: 0.5rem 1rem;
 }
-nav a.admin-link { /* Ajoute cette classe au lien "Administration" dans layout.php */
+nav a.admin-link { 
     color: var(--color-warning) !important;
     font-weight: bold;
     border: 1px solid var(--color-warning);
@@ -117,13 +118,13 @@ nav a.admin-link:hover {
 }
 
 /* Conteneur Principal et Main */
-.container { /* Applique cette classe à <main> dans layout.php */
-    width: 95%;
+.container { 
+    width: 90%;
     max-width: var(--container-max-width);
     margin: calc(var(--spacing-unit) * 1.5) auto;
     padding: calc(var(--spacing-unit) * 1.5);
     background: var(--background-light);
-    border-radius: calc(var(--border-radius) * 2); /* Coins plus arrondis */
+    border-radius: calc(var(--border-radius) * 2); 
     box-shadow: var(--box-shadow);
 }
 main h2 {
@@ -142,7 +143,7 @@ footer {
     padding: calc(var(--spacing-unit) * 1.5) 0;
     background: var(--background-dark);
     color: var(--text-muted);
-    margin-top: auto; /* Pousse le footer en bas */
+    margin-top: auto; 
     font-size: 0.9em;
 }
 
@@ -187,7 +188,7 @@ form input[type="checkbox"] + label {
 /* Boutons */
 .button-like,
 button[type="submit"],
-input[type="submit"] { /* Ajouté pour input type submit */
+input[type="submit"] { 
     display: inline-block;
     font-weight: 500;
     text-align: center;
@@ -212,43 +213,44 @@ input[type="submit"]:hover {
     color: var(--text-color-light);
     text-decoration: none;
 }
-.button-delete, a.button-delete { /* Assurer que les liens .button-delete sont aussi stylés */
+.button-delete, a.button-delete { 
     background-color: var(--color-danger);
     border-color: var(--color-danger);
-    color: var(--text-color-light) !important; /* Important pour forcer sur les liens */
+    color: var(--text-color-light) !important; 
 }
 .button-delete:hover, a.button-delete:hover {
-    background-color: #c82333; /* Rouge plus foncé */
+    background-color: #c82333; 
     border-color: #b02a37;
     color: var(--text-color-light) !important;
 }
-a.button-like[style*="ffc107"] { /* Pour le lien admin */
+a.button-like.admin-link { /* Assurer que le style admin sur le lien nav ne soit pas écrasé par .button-like */
     background-color: var(--color-warning);
     border-color: var(--color-warning);
     color: var(--text-color-dark) !important;
 }
-a.button-like[style*="ffc107"]:hover {
-    background-color: #e0a800; /* Jaune plus foncé */
+a.button-like.admin-link:hover {
+    background-color: #e0a800; 
     border-color: #d39e00;
     color: var(--text-color-dark) !important;
 }
-.button-secondary { /* Pour "Effacer la recherche" ou "Retour" */
+.button-secondary { 
     background-color: var(--color-secondary);
     border-color: var(--color-secondary);
 }
 .button-secondary:hover {
-    background-color: var(--secondary-hover-color);
-    border-color: var(--secondary-hover-color);
+    background-color: var(--color-secondary-hover-color);
+    border-color: var(--color-secondary-hover-color);
 }
-/* Appliquer .button-like .button-secondary aux liens "Effacer la recherche" et "Retour" */
-a[href*="admin_users_list"].button-like, /* Effacer recherche */
-a[href*="url=accueil"].button-back, /* Retour produits */
-a[href*="url=admin_dashboard"].button-back, /* Retour admin dashboard */
-a[href*="url=admin_products_list"].button-back, /* Retour admin produits */
-a[href*="url=admin_users_list"].button-back, /* Retour admin users */
-a[href*="url=login"].button-back /* Retour connexion depuis forgot/reset password */ {
+/* Application de .button-secondary aux liens spécifiques */
+a[href*="admin_users_list"].button-like, 
+a[href*="url=accueil"].button-back, 
+a[href*="url=admin_dashboard"].button-back, 
+a[href*="url=admin_products_list"].button-back, 
+a[href*="url=admin_users_list"].button-back, 
+a[href*="url=login"].button-back {
     background-color: var(--color-secondary);
     border-color: var(--color-secondary);
+    color: var(--text-color-light) !important;
 }
 a[href*="admin_users_list"].button-like:hover,
 a[href*="url=accueil"].button-back:hover,
@@ -256,9 +258,13 @@ a[href*="url=admin_dashboard"].button-back:hover,
 a[href*="url=admin_products_list"].button-back:hover,
 a[href*="url=admin_users_list"].button-back:hover,
 a[href*="url=login"].button-back:hover {
-    background-color: var(--secondary-hover-color);
-    border-color: var(--secondary-hover-color);
+    background-color: var(--color-secondary-hover-color);
+    border-color: var(--color-secondary-hover-color);
+    color: var(--text-color-light) !important;
 }
+a.button-like.button-details { background-color: var(--color-primary); } /* Maintenir la couleur primaire pour "Voir détails" */
+a.button-like.button-details:hover { background-color: var(--color-primary-darker); }
+
 
 
 /* Liste des Produits */
@@ -281,24 +287,25 @@ a[href*="url=login"].button-back:hover {
     transform: translateY(-4px);
     box-shadow: var(--box-shadow);
 }
-.product-item img, .product-no-image { /* S'applique aussi à product-no-image-detail via CSS général */
+.product-item img, .product-no-image, .product-no-image-detail {
     width: 100%;
-    height: 220px;
+    height: 220px; 
     object-fit: cover;
-    background-color: var(--light-gray);
+    background-color: var(--light-gray); 
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-muted);
+    font-size: 0.9em;
 }
-.product-item .product-content { /* Nouveau conteneur pour le texte */
+.product-item .product-content { 
     padding: var(--spacing-unit);
-    flex-grow: 1;
+    flex-grow: 1; 
     display: flex;
     flex-direction: column;
 }
 .product-item h3 {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     margin-top: 0;
     margin-bottom: calc(var(--spacing-unit) / 2);
     font-weight: 500;
@@ -309,19 +316,19 @@ a[href*="url=login"].button-back:hover {
     font-size: 0.9rem;
     color: #495057;
     margin-bottom: var(--spacing-unit);
-    flex-grow: 1; /* Permet à la description de prendre de la place */
+    flex-grow: 1; 
 }
-.product-item .product-footer { /* Nouveau conteneur pour prix/bouton */
+.product-item .product-footer { 
     padding: var(--spacing-unit);
     padding-top: 0;
     border-top: 1px solid var(--border-color);
-    margin-top: auto; /* Pousse en bas */
+    margin-top: auto; 
 }
 .product-item .product-footer p { margin-bottom: 0.5rem; }
 .product-item .price { font-weight: bold; color: var(--color-success); font-size: 1.15rem; }
 .product-item .seller-info, .product-item .date-info { 
     font-size: 0.8rem; color: var(--text-muted); 
-    display: block; /* Pour qu'ils prennent toute la largeur */
+    display: block; 
     margin-bottom: 0.25rem;
 }
 .product-item .button-details { margin-top: 0.5rem; display: block; text-align: center; }
@@ -330,19 +337,19 @@ a[href*="url=login"].button-back:hover {
 /* Détail Produit */
 .product-detail .product-image-container img, .product-detail .product-no-image-detail {
     width: 100%;
-    max-width: 500px; /* Limite la largeur de l'image en détail */
+    max-width: 500px; 
     height: auto;
     max-height: 500px;
     display: block;
     margin: 0 auto calc(var(--spacing-unit) * 1.5) auto;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    object-fit: contain; /* Pour voir toute l'image */
-    background-color: var(--light-gray); /* Pour placeholder */
+    object-fit: contain; 
+    background-color: var(--light-gray); 
     display: flex; align-items: center; justify-content: center; color: var(--text-muted);
 }
 .product-detail .product-description-box {
-    background-color: #fdfdff; /* Un peu plus clair que le fond body */
+    background-color: #fdfdfd; 
     padding: 1.5rem;
     border-radius: var(--border-radius);
     margin-bottom: 1.5rem;
@@ -350,10 +357,10 @@ a[href*="url=login"].button-back:hover {
     border: 1px solid var(--border-color);
     font-size: 1.05rem;
 }
-.product-detail .owner-options {
+.owner-options {
     margin-top: 1.5rem;
     padding: 1rem;
-    background-color: #e9f5ff; /* Bleu clair */
+    background-color: #e9f5ff; 
     border: 1px solid #b3d7ff;
     border-radius: var(--border-radius);
 }
@@ -368,7 +375,7 @@ a[href*="url=login"].button-back:hover {
 .error-message { color: #842029; background-color: #f8d7da; border-color: #f5c2c7; }
 .info-message { color: #055160; background-color: #cff4fc; border-color: #b6effb; }
 .info-message a { font-weight: bold; color: #055160; }
-.info-message a.button-like { color: white !important; } /* Spécifique pour le lien de reset */
+.info-message a.button-like { color: white !important; } 
 
 /* Tableaux Admin */
 table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; font-size: 0.9em; 
@@ -383,29 +390,46 @@ td .button-like, td .button-delete { padding: 0.375rem 0.75rem; font-size: 0.875
 
 
 /* Responsivité */
-@media (max-width: 992px) { /* Tablettes et en dessous */
+@media (max-width: 992px) { 
+    .container, main {
+        width: 95%; 
+    }
     .product-list {
-        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
+    }
+    header h1 {
+        font-size: 1.8rem;
     }
 }
-@media (max-width: 768px) { /* Mobiles */
-    .container, main { width: auto; margin: 0; padding: 1rem; border-radius: 0; box-shadow: none;}
-    header { padding: 0.75rem 0; }
-    header h1 { font-size: 1.5rem; }
+@media (max-width: 768px) { 
+    body {
+        font-size: 0.95rem; 
+    }
+    .container, main { 
+        width: auto; margin: 0; padding: 1rem; border-radius: 0; box-shadow: none;
+    }
+    header { padding: 0.75rem var(--spacing-unit); position: static; }
+    header h1 { font-size: 1.6rem; }
     nav { display: flex; flex-direction: column; align-items: stretch; }
-    nav a, nav span { display: block; width: auto; text-align: center; margin: 0.3rem 0.5rem; padding: 0.6rem; }
+    nav a, nav span { display: block; width: auto; text-align: center; margin: 0.3rem 0.5rem; padding: 0.6rem; 
+                      border-bottom: 1px solid #4f5962; }
+    nav a:last-of-type, nav span + a:last-of-type { /* Ajuster pour le dernier lien dans la nav empilée */
+        border-bottom: none; 
+    }
+    nav span { border-bottom: none; padding-bottom: 0.5rem; color: var(--text-muted); }
     
-    main h2 { font-size: 1.5rem; }
-    .product-list { grid-template-columns: 1fr; gap: 1rem; } /* Une colonne sur mobile */
-    .product-item { box-shadow: var(--box-shadow-sm); }
+    main h2 { font-size: 1.4rem; margin-bottom: 1rem; padding-bottom: 0.5rem; }
+    .product-list { grid-template-columns: 1fr; gap: 1rem; } 
+    .product-item { box-shadow: var(--box-shadow-sm); } 
     .product-item img, .product-no-image { height: 200px; }
 
-    /* Rendre les tableaux admin scrollables horizontalement */
-    table { display: block; overflow-x: auto; white-space: nowrap; }
-    
-    /* Ajuster les formulaires pour mobile */
+    table { display: block; width: 100%; overflow-x: auto; white-space: nowrap; 
+            -webkit-overflow-scrolling: touch; }
+    th, td { white-space: nowrap; padding: 0.6rem 0.8rem; }
+    td .button-like, td .button-delete { white-space: normal; display: inline-block; margin-bottom: 0.3rem; }
+
     form input, form textarea, form select, form button, .button-like {
-        font-size: 1rem; /* Garder une bonne taille pour la saisie */
+        font-size: 1rem; 
         padding: 0.8rem;
     }
     form input[type="file"] { padding: 0.6rem; }

@@ -36,6 +36,12 @@ function handleRoute($url) {
     } elseif ($url === 'reset_password_process' && $_SERVER['REQUEST_METHOD'] === 'POST') { 
         $userController = new UserController();
         $userController->processResetPassword();
+    } elseif ($url === 'profile_edit_form') { // Afficher le formulaire d'édition de profil
+        $userController = new UserController();
+        $userController->showProfileEditForm();
+    } elseif ($url === 'profile_update_process' && $_SERVER['REQUEST_METHOD'] === 'POST') { // Traiter la mise à jour du profil
+        $userController = new UserController();
+        $userController->processProfileUpdate();
     } elseif ($url === 'product_add') {
         $productController = new ProductController();
         $productController->showAddForm();
