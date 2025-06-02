@@ -29,13 +29,13 @@ function handleRoute($url) {
     } elseif ($url === 'forgot_password_request' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $userController = new UserController();
         $userController->processForgotPasswordRequest();
-    } elseif ($url === 'reset_password_form') { // Affiche le formulaire de nouveau mot de passe
+    } elseif ($url === 'reset_password_form') { 
         $token = isset($_GET['token']) ? $_GET['token'] : '';
         $userController = new UserController();
-        $userController->showResetPasswordForm($token); // Nouvelle méthode
-    } elseif ($url === 'reset_password_process' && $_SERVER['REQUEST_METHOD'] === 'POST') { // Traite le nouveau mot de passe
+        $userController->showResetPasswordForm($token);
+    } elseif ($url === 'reset_password_process' && $_SERVER['REQUEST_METHOD'] === 'POST') { 
         $userController = new UserController();
-        $userController->processResetPassword(); // Nouvelle méthode
+        $userController->processResetPassword();
     } elseif ($url === 'product_add') {
         $productController = new ProductController();
         $productController->showAddForm();
@@ -50,6 +50,12 @@ function handleRoute($url) {
         $productId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         $productController = new ProductController();
         $productController->processProductDelete($productId);
+    } elseif ($url === 'products_list_public') { 
+        $productController = new ProductController();
+        $productController->listAllPublicProducts();
+    } elseif ($url === 'my_products') { 
+        $productController = new ProductController();
+        $productController->listMyProducts();
     } elseif ($url === 'admin_dashboard') { 
         $adminController = new AdminController(); 
         $adminController->dashboard();
@@ -86,11 +92,9 @@ function handleRoute($url) {
         $productId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         $adminController = new AdminController();
         $adminController->processProductEdit($productId);
-    } elseif ($url === 'contact') {
-        echo "Page de contact (à créer plus tard).";
     } else {
         http_response_code(404);
-        echo "Erreur 404 : Page non trouvée (Route non définie dans router.php pour l'URL : '" . htmlspecialchars($url) . "').";
+        echo "Erreur 404 : Page non trouvée (Route non définie pour l'URL : '" . htmlspecialchars($url) . "').";
     }
 }
 ?>

@@ -1,8 +1,3 @@
-<?php
-// src/views/product/add_form.php
-echo "<h1>--- DEBUG: CONTENU DE add_form.php EST BIEN CHARGÉ ---</h1>"; 
-?>
-
 <h2>Vendre un nouvel article</h2>
 
 <form action="<?php echo INDEX_FILE_PATH; ?>?url=product_create_process" method="POST" enctype="multipart/form-data">

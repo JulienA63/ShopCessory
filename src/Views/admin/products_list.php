@@ -1,58 +1,47 @@
 <?php
-// src/views/admin/products_list.php
+// src/views/product/products_list_public.php
+// Les variables $pageTitle et $products sont disponibles.
 ?>
-<h2>Gestion de Toutes les Annonces</h2>
-
-<?php 
-if (isset($_GET['status'])) {
-    if ($_GET['status'] === 'product_deleted') echo "<p class='message success-message'>Annonce supprimée avec succès.</p>";
-    if ($_GET['status'] === 'product_updated') echo "<p class='message success-message'>Annonce mise à jour avec succès.</p>";
-}
-if (isset($_GET['error'])) {
-    // Gérer différents messages d'erreur si besoin (ex: invalid_id, db_error)
-    echo "<p class='message error-message'>Une erreur s'est produite lors de l'opération.</p>";
-}
-?>
+<h2>Tous nos articles en vente</h2>
 
 <?php if (!empty($products)): ?>
-    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-        <thead>
-            <tr style="background-color: #f2f2f2;">
-                <th>ID</th><th>Titre</th><th>Vendeur</th><th>Prix</th><th>Date Création</th><th>Image</th><th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($products as $product): ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($product['id']); ?></td>
-                    <td>
+    <div class="product-list">
+        <?php foreach ($products as $product): ?>
+            <div class="product-item">
+                <?php if (!empty($product['image_path'])): ?>
+                    <img src="<?php echo PRODUCT_IMAGE_BASE_URL . htmlspecialchars($product['image_path']); ?>" 
+                         alt="<?php echo htmlspecialchars($product['title']); ?>">
+                <?php else: ?>
+                    <div class="product-no-image"><span>Pas d'image</span></div>
+                <?php endif; ?>
+                <div class="product-content">
+                    <h3>
                         <a href="<?php echo INDEX_FILE_PATH; ?>?url=product_detail&id=<?php echo $product['id']; ?>">
                             <?php echo htmlspecialchars($product['title']); ?>
                         </a>
-                    </td>
-                    <td><?php echo htmlspecialchars($product['seller_username']); ?></td>
-                    <td><?php echo htmlspecialchars(number_format($product['price'], 2, ',', ' ')); ?> €</td>
-                    <td><?php echo date('d/m/Y H:i', strtotime($product['created_at'])); ?></td>
-                    <td>
-                        <?php if (!empty($product['image_path'])): ?>
-                            <img src="<?php echo PRODUCT_IMAGE_BASE_URL . htmlspecialchars($product['image_path']); ?>" alt="Aperçu" style="width: 50px; height: auto;">
-                        <?php else: ?>
-                            Aucune
-                        <?php endif; ?>
-                    </td>
-                    <td>
-                        <a href="<?php echo INDEX_FILE_PATH; ?>?url=admin_product_edit_form&id=<?php echo $product['id']; ?>" class="button-like" style="background-color: #ffc107; color: #212529;">Modifier</a> |
-                        <a href="<?php echo INDEX_FILE_PATH; ?>?url=admin_product_delete&id=<?php echo $product['id']; ?>" 
-                           onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette annonce ? Ceci est irréversible.');"
-                           class="button-delete">Supprimer</a>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-    <style> th, td { border: 1px solid #ddd; padding: 8px; text-align: left; vertical-align: middle; } </style>
+                    </h3>
+                    <p class="product-description">
+                        <?php 
+                        $description = htmlspecialchars($product['description']);
+                        if (strlen($description) > 70) { 
+                            echo substr($description, 0, 70) . '...';
+                        } else {
+                            echo $description;
+                        }
+                        ?>
+                    </p>
+                </div>
+                <div class="product-footer">
+                    <p class="price"><strong>Prix :</strong> <?php echo htmlspecialchars(number_format($product['price'], 2, ',', ' ')); ?> €</p>
+                    <?php if (isset($product['seller_username'])): ?>
+                        <p class="seller-info"><small>Vendu par : <?php echo htmlspecialchars($product['seller_username']); ?></small></p>
+                    <?php endif; ?>
+                    <p class="date-info"><small>Ajouté le : <?php echo date('d/m/Y H:i', strtotime($product['created_at'])); ?></small></p>
+                    <a href="<?php echo INDEX_FILE_PATH; ?>?url=product_detail&id=<?php echo $product['id']; ?>" class="button-like button-details">Voir détails</a>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
 <?php else: ?>
-    <p>Aucune annonce n'a été trouvée dans la base de données.</p>
+    <p>Il n'y a aucun article en vente pour le moment.</p>
 <?php endif; ?>
-
-<p style="margin-top: 20px;"><a href="<?php echo INDEX_FILE_PATH; ?>?url=admin_dashboard">&laquo; Retour au tableau de bord Admin</a></p>

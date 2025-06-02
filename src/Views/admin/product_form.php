@@ -1,11 +1,4 @@
 <?php
-// src/views/admin/product_form.php
-// Variables attendues :
-// $pageTitle
-// $productToEdit (objet/array du produit pour l'édition, ou null/vide pour la création par admin)
-// $formActionUrl (URL de soumission du formulaire)
-// $errors (tableau optionnel des erreurs de validation)
-
 $isEditMode = (isset($productToEdit) && !empty($productToEdit['id']));
 $submitButtonText = $isEditMode ? "Mettre à jour l'annonce" : "Créer l'annonce"; // (Pour une future création par admin)
                                                                               // Pour l'instant, ce formulaire est utilisé seulement pour l'édition.

@@ -14,7 +14,8 @@
         <h1>SHOPCESSORY</h1>
         <nav>
             <a href="<?php echo INDEX_FILE_PATH; ?>?url=accueil">Accueil</a>
-            <a href="#">Produits</a>
+            <a href="<?php echo INDEX_FILE_PATH; ?>?url=products_list_public">Produits</a>
+
             <?php if (isUserLoggedIn()): ?>
                 <span>Bienvenue, <?php echo htmlspecialchars($_SESSION['username']); ?> !</span>
                 <?php if (isAdmin()): ?>
@@ -29,8 +30,7 @@
             <?php endif; ?>
         </nav>
     </header>
-    <main>
-        <?php display_flash_messages(); ?>
+    <main class="container">
         <?php
         if (isset($contentView) && file_exists($contentView)) {
             require_once $contentView;

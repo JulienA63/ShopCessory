@@ -20,5 +20,5 @@
     </div>
 </form>
 
-<p><a href="<?php echo INDEX_FILE_PATH; ?>?url=forgot_password">Mot de passe oublié ?</a></p> {/* NOUVEAU LIEN */}
+<p><a href="<?php echo INDEX_FILE_PATH; ?>?url=forgot_password">Mot de passe oublié ?</a></p>
 <p>Pas encore de compte ? <a href="<?php echo INDEX_FILE_PATH; ?>?url=inscription">Inscrivez-vous ici</a></p>

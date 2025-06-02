@@ -5,114 +5,71 @@ class UserController {
 
     /**
      * Affiche le formulaire d'inscription.
-     * Récupère les données de formulaire précédemment soumises (via session) en cas d'erreur pour repopulation.
      */
     public function showRegistrationForm() {
         $pageTitle = "Inscription - SHOPCESSORY";
-        
         $formData = isset($_SESSION['form_data']) ? $_SESSION['form_data'] : [];
-        unset($_SESSION['form_data']); // Nettoyer la session après récupération
-
+        unset($_SESSION['form_data']);
         extract(['pageTitle' => $pageTitle, 'formData' => $formData]);
-
         $contentView = APP_PATH . '/views/user/register.php';
         require_once APP_PATH . '/views/layout.php';
     }
 
     /**
      * Traite les données soumises par le formulaire d'inscription.
-     * Utilise les flash messages pour tous les retours et redirige.
      */
     public function processRegistration() {
         $errors = [];
-        // Récupérer les données POST
         $firstname = isset($_POST['firstname']) ? trim($_POST['firstname']) : '';
         $lastname = isset($_POST['lastname']) ? trim($_POST['lastname']) : '';
         $username = isset($_POST['username']) ? trim($_POST['username']) : '';
-        $email = isset($_POST['email']) ? trim($_POST['email']) : ''; // Email récupéré
+        $email = isset($_POST['email']) ? trim($_POST['email']) : '';
         $password = isset($_POST['password']) ? $_POST['password'] : '';
 
-        // Validation des données
         if (empty($firstname)) { $errors['firstname'] = "Le prénom est requis."; }
         if (empty($lastname)) { $errors['lastname'] = "Le nom est requis."; }
         if (empty($username)) { $errors['username'] = "Le nom d'utilisateur est requis."; }
-        
-        if (empty($email)) { 
-            $errors['email'] = "L'adresse e-mail est requise.";
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors['email_format'] = "Le format de l'adresse e-mail est invalide.";
-        }
-
-        if (empty($password)) { 
-            $errors['password'] = "Le mot de passe est requis."; 
-        } elseif (strlen($password) < 6) { 
-            $errors['password_length'] = "Le mot de passe doit contenir au moins 6 caractères."; 
-        }
+        if (empty($email)) { $errors['email'] = "L'adresse e-mail est requise.";
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors['email_format'] = "Le format de l'adresse e-mail est invalide.";}
+        if (empty($password)) { $errors['password'] = "Le mot de passe est requis."; } 
+        elseif (strlen($password) < 6) { $errors['password_length'] = "Le mot de passe doit contenir au moins 6 caractères."; }
 
         if (!empty($errors)) {
-            foreach($errors as $errorMessage) { 
-                set_flash_message('error', $errorMessage);
-            }
-            $_SESSION['form_data'] = $_POST; 
-            header('Location: ' . INDEX_FILE_PATH . '?url=inscription'); 
-            exit;
+            foreach($errors as $errorMsg) { set_flash_message('error', $errorMsg); }
+            $_SESSION['form_data'] = $_POST;
+            header('Location: ' . INDEX_FILE_PATH . '?url=inscription'); exit;
         }
         
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         $pdo = getPDOConnection();
-
         if (!$pdo) { 
-            set_flash_message('error', "Erreur critique : Impossible de se connecter à la base de données.");
-            error_log("Erreur critique BDD (processRegistration)."); 
-            $_SESSION['form_data'] = $_POST;
-            header('Location: ' . INDEX_FILE_PATH . '?url=inscription');
-            exit;
+            set_flash_message('error', "Erreur critique BDD."); $_SESSION['form_data'] = $_POST;
+            header('Location: ' . INDEX_FILE_PATH . '?url=inscription'); exit;
         }
-
         try {
-            // Vérifier l'unicité du nom d'utilisateur
             $stmtCheckUser = $pdo->prepare("SELECT id FROM users WHERE username = :username");
-            $stmtCheckUser->bindParam(':username', $username);
-            $stmtCheckUser->execute();
+            $stmtCheckUser->bindParam(':username', $username); $stmtCheckUser->execute();
             if ($stmtCheckUser->fetch()) {
-                set_flash_message('error', "Ce nom d'utilisateur ('" . htmlspecialchars($username) . "') est déjà pris.");
-                $_SESSION['form_data'] = $_POST;
-                header('Location: ' . INDEX_FILE_PATH . '?url=inscription');
-                exit;
+                set_flash_message('error', "Nom d'utilisateur ('" . htmlspecialchars($username) . "') déjà pris.");
+                $_SESSION['form_data'] = $_POST; header('Location: ' . INDEX_FILE_PATH . '?url=inscription'); exit;
             }
-
-            // Vérifier l'unicité de l'e-mail
             $stmtCheckEmail = $pdo->prepare("SELECT id FROM users WHERE email = :email");
-            $stmtCheckEmail->bindParam(':email', $email);
-            $stmtCheckEmail->execute();
+            $stmtCheckEmail->bindParam(':email', $email); $stmtCheckEmail->execute();
             if ($stmtCheckEmail->fetch()) {
-                set_flash_message('error', "Cette adresse e-mail ('" . htmlspecialchars($email) . "') est déjà utilisée.");
-                $_SESSION['form_data'] = $_POST;
-                header('Location: ' . INDEX_FILE_PATH . '?url=inscription');
-                exit;
+                set_flash_message('error', "Adresse e-mail ('" . htmlspecialchars($email) . "') déjà utilisée.");
+                $_SESSION['form_data'] = $_POST; header('Location: ' . INDEX_FILE_PATH . '?url=inscription'); exit;
             }
-
-            // Insérer le nouvel utilisateur avec l'email
-            $sql = "INSERT INTO users (firstname, lastname, username, email, password, role) 
-                    VALUES (:firstname, :lastname, :username, :email, :password, 'user')";
+            $sql = "INSERT INTO users (firstname, lastname, username, email, password, role) VALUES (:firstname, :lastname, :username, :email, :password, 'user')";
             $stmt = $pdo->prepare($sql);
-            $stmt->bindParam(':firstname', $firstname); 
-            $stmt->bindParam(':lastname', $lastname);
-            $stmt->bindParam(':username', $username); 
-            $stmt->bindParam(':email', $email); 
-            $stmt->bindParam(':password', $hashedPassword);
-            $stmt->execute();
-
-            set_flash_message('success', "Inscription réussie ! Bienvenue, " . htmlspecialchars($firstname) . ". Vous pouvez maintenant vous connecter.");
-            header('Location: ' . INDEX_FILE_PATH . '?url=login'); 
-            exit;
-
+            $stmt->bindParam(':firstname', $firstname); $stmt->bindParam(':lastname', $lastname);
+            $stmt->bindParam(':username', $username); $stmt->bindParam(':email', $email); 
+            $stmt->bindParam(':password', $hashedPassword); $stmt->execute();
+            set_flash_message('success', "Inscription réussie ! Vous pouvez vous connecter.");
+            header('Location: ' . INDEX_FILE_PATH . '?url=login'); exit;
         } catch (PDOException $e) {
-            set_flash_message('error', "Une erreur de base de données est survenue lors de la création de votre compte.");
-            error_log("Erreur PDO (processRegistration) : " . $e->getMessage()); 
-            $_SESSION['form_data'] = $_POST;
-            header('Location: ' . INDEX_FILE_PATH . '?url=inscription');
-            exit;
+            set_flash_message('error', "Erreur BDD lors de l'inscription.");
+            error_log("PDO Error (processRegistration) : " . $e->getMessage()); 
+            $_SESSION['form_data'] = $_POST; header('Location: ' . INDEX_FILE_PATH . '?url=inscription'); exit;
         }
     }
 
@@ -121,8 +78,7 @@ class UserController {
      */
     public function showLoginForm() {
         $pageTitle = "Connexion - SHOPCESSORY";
-        $formData = isset($_SESSION['form_data']) ? $_SESSION['form_data'] : [];
-        unset($_SESSION['form_data']);
+        $formData = isset($_SESSION['form_data']) ? $_SESSION['form_data'] : []; unset($_SESSION['form_data']);
         extract(['pageTitle' => $pageTitle, 'formData' => $formData]);
         $contentView = APP_PATH . '/views/user/login.php';
         require_once APP_PATH . '/views/layout.php';
@@ -173,7 +129,7 @@ class UserController {
                 exit;
             } else {
                 set_flash_message('error', 'Nom d\'utilisateur ou mot de passe incorrect.');
-                $_SESSION['form_data'] = $_POST; // Pour repopuler le champ username
+                $_SESSION['form_data'] = $_POST;
                 header('Location: ' . INDEX_FILE_PATH . '?url=login');
                 exit;
             }
@@ -223,9 +179,11 @@ class UserController {
         require_once APP_PATH . '/views/layout.php';
     }
 
+    /**
+     * Traite la soumission du formulaire de demande de réinitialisation de mot de passe.
+     */
     public function processForgotPasswordRequest() {
         $email = isset($_POST['email']) ? trim($_POST['email']) : '';
-        $_SESSION['form_data'] = $_POST; // Pour repopulation en cas d'erreur
 
         if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             set_flash_message('error', 'Veuillez fournir une adresse e-mail valide.');
@@ -241,66 +199,174 @@ class UserController {
         }
 
         try {
-            // 1. Vérifier si l'email existe
             $stmt = $pdo->prepare("SELECT id FROM users WHERE email = :email");
             $stmt->bindParam(':email', $email);
             $stmt->execute();
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($user) {
-                // 2. Générer un jeton sécurisé
-                $token = bin2hex(random_bytes(32)); // Jeton de 64 caractères hexadécimaux
-                $tokenHash = hash('sha256', $token); // Hasher le jeton avant de le stocker
+            $messageToUser = 'Si un compte avec cet e-mail existe, un lien de réinitialisation (simulé) a été préparé.';
 
-                // 3. Définir une date d'expiration (par exemple, 1 heure à partir de maintenant)
+            if ($user) {
+                $token = bin2hex(random_bytes(32)); 
+                $tokenHash = hash('sha256', $token); 
                 $expiresAt = new DateTime();
-                $expiresAt->add(new DateInterval('PT1H')); // PT1H signifie Période de Temps de 1 Heure
+                $expiresAt->add(new DateInterval('PT1H')); 
                 $expiresAtFormatted = $expiresAt->format('Y-m-d H:i:s');
 
-                // 4. Stocker le hash du jeton et sa date d'expiration dans la table users
                 $stmtUpdate = $pdo->prepare("UPDATE users SET reset_token_hash = :token_hash, reset_token_expires_at = :expires_at WHERE id = :user_id");
                 $stmtUpdate->bindParam(':token_hash', $tokenHash);
                 $stmtUpdate->bindParam(':expires_at', $expiresAtFormatted);
                 $stmtUpdate->bindParam(':user_id', $user['id'], PDO::PARAM_INT);
                 $stmtUpdate->execute();
 
-                // 5. (Simulation) Afficher le lien de réinitialisation que l'utilisateur recevrait par e-mail
-                // Dans une vraie application, on enverrait un e-mail ici.
-                // Le lien pointera vers une nouvelle route que nous créerons : reset_password_form
                 $resetLink = INDEX_FILE_PATH . '?url=reset_password_form&token=' . $token;
-
-                set_flash_message('success', 'Si un compte avec cet e-mail existe, un lien de réinitialisation vous a été (simulé) envoyé.');
-                // Pour le débogage, affichons le lien (à enlever en production si on envoyait vraiment des emails)
-                set_flash_message('info', 'Pour tester, utilisez ce lien (normalement envoyé par e-mail) : <a href="' . htmlspecialchars($resetLink) . '">' . htmlspecialchars($resetLink) . '</a>');
-                
-                unset($_SESSION['form_data']); // Nettoyer les données du formulaire en cas de succès
-                header('Location: ' . INDEX_FILE_PATH . '?url=forgot_password'); // Rediriger vers la même page pour afficher le message
-                exit;
-
-            } else {
-                // Email non trouvé, mais on affiche le même message pour des raisons de sécurité
-                // (pour ne pas révéler quels emails sont enregistrés ou non)
-                set_flash_message('success', 'Si un compte avec cet e-mail existe, un lien de réinitialisation vous a été (simulé) envoyé.');
-                unset($_SESSION['form_data']);
-                header('Location: ' . INDEX_FILE_PATH . '?url=forgot_password');
-                exit;
+                $linkHtml = '<a href="' . htmlspecialchars($resetLink) . '" class="button-like" style="background-color: #17a2b8; display:inline-block; margin-top:10px;">Utiliser ce lien de réinitialisation</a>';
+                set_flash_message('info', 'Pour tester : ' . $linkHtml);
             }
+            
+            set_flash_message('success', $messageToUser);
+            header('Location: ' . INDEX_FILE_PATH . '?url=forgot_password');
+            exit;
 
         } catch (PDOException $e) {
-            set_flash_message('error', 'Une erreur de base de données est survenue. Veuillez réessayer.');
+            set_flash_message('error', 'Une erreur de base de données est survenue lors de la demande.');
             error_log("Erreur PDO (processForgotPasswordRequest) : " . $e->getMessage());
             header('Location: ' . INDEX_FILE_PATH . '?url=forgot_password');
             exit;
-        } catch (Exception $e) { // Pour random_bytes ou DateTime
-            set_flash_message('error', 'Une erreur système est survenue. Veuillez réessayer.');
+        } catch (Exception $e) { 
+            set_flash_message('error', 'Une erreur système est survenue lors de la demande.');
             error_log("Erreur Générale (processForgotPasswordRequest) : " . $e->getMessage());
             header('Location: ' . INDEX_FILE_PATH . '?url=forgot_password');
             exit;
         }
     }
 
-    // public function processForgotPasswordRequest() { /* Prochaine étape pour la réinitialisation */ }
-    // public function showResetPasswordForm($token) { /* Prochaine étape pour la réinitialisation */ }
-    // public function processResetPassword($token) { /* Prochaine étape pour la réinitialisation */ }
+    /**
+     * Affiche le formulaire pour saisir un nouveau mot de passe, après vérification du jeton.
+     * @param string $token Le jeton de réinitialisation reçu de l'URL.
+     */
+    public function showResetPasswordForm($token) {
+        $pageTitle = "Réinitialiser le mot de passe - SHOPCESSORY";
+        
+        if (empty($token)) {
+            set_flash_message('error', 'Jeton de réinitialisation manquant ou invalide.');
+            header('Location: ' . INDEX_FILE_PATH . '?url=login');
+            exit;
+        }
+
+        $tokenHash = hash('sha256', $token);
+        $pdo = getPDOConnection();
+
+        if (!$pdo) {
+            set_flash_message('error', 'Erreur de connexion à la base de données.');
+            header('Location: ' . INDEX_FILE_PATH . '?url=login');
+            exit;
+        }
+
+        try {
+            $stmt = $pdo->prepare("SELECT id, reset_token_expires_at FROM users WHERE reset_token_hash = :token_hash");
+            $stmt->bindParam(':token_hash', $tokenHash);
+            $stmt->execute();
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($user && isset($user['reset_token_expires_at']) && new DateTime() < new DateTime($user['reset_token_expires_at'])) {
+                $formData = isset($_SESSION['form_data']) ? $_SESSION['form_data'] : []; 
+                unset($_SESSION['form_data']);
+                extract(['pageTitle' => $pageTitle, 'token' => $token, 'formData' => $formData]); 
+                $contentView = APP_PATH . '/views/user/reset_password_form.php';
+                require_once APP_PATH . '/views/layout.php';
+            } else {
+                set_flash_message('error', 'Ce lien de réinitialisation est invalide ou a expiré. Veuillez refaire une demande.');
+                header('Location: ' . INDEX_FILE_PATH . '?url=forgot_password');
+                exit;
+            }
+        } catch (PDOException $e) {
+            set_flash_message('error', 'Erreur de base de données lors de la vérification du jeton.');
+            error_log("Erreur PDO (showResetPasswordForm) : " . $e->getMessage());
+            header('Location: ' . INDEX_FILE_PATH . '?url=login');
+            exit;
+        } catch (Exception $e) { 
+             set_flash_message('error', 'Erreur système lors de la vérification de la date du jeton.');
+            error_log("Erreur DateTime (showResetPasswordForm) : " . $e->getMessage());
+            header('Location: ' . INDEX_FILE_PATH . '?url=login');
+            exit;
+        }
+    }
+
+    /**
+     * Traite la soumission du nouveau mot de passe.
+     */
+    public function processResetPassword() {
+        $token = isset($_POST['token']) ? $_POST['token'] : '';
+        $newPassword = isset($_POST['new_password']) ? $_POST['new_password'] : '';
+        $confirmPassword = isset($_POST['confirm_password']) ? $_POST['confirm_password'] : '';
+        
+        $_SESSION['form_data'] = $_POST; 
+
+        if (empty($token)) {
+            set_flash_message('error', 'Jeton de réinitialisation manquant. Impossible de traiter la demande.');
+            header('Location: ' . INDEX_FILE_PATH . '?url=login'); 
+            exit;
+        }
+        if (empty($newPassword) || empty($confirmPassword)) {
+            set_flash_message('error', 'Veuillez saisir et confirmer votre nouveau mot de passe.');
+            header('Location: ' . INDEX_FILE_PATH . '?url=reset_password_form&token=' . urlencode($token));
+            exit;
+        }
+        if (strlen($newPassword) < 6) {
+            set_flash_message('error', 'Le nouveau mot de passe doit contenir au moins 6 caractères.');
+            header('Location: ' . INDEX_FILE_PATH . '?url=reset_password_form&token=' . urlencode($token));
+            exit;
+        }
+        if ($newPassword !== $confirmPassword) {
+            set_flash_message('error', 'Les mots de passe ne correspondent pas.');
+            header('Location: ' . INDEX_FILE_PATH . '?url=reset_password_form&token=' . urlencode($token));
+            exit;
+        }
+
+        $tokenHash = hash('sha256', $token);
+        $pdo = getPDOConnection();
+        if (!$pdo) { 
+            set_flash_message('error', 'Erreur de connexion à la base de données.');
+            header('Location: ' . INDEX_FILE_PATH . '?url=reset_password_form&token=' . urlencode($token));
+            exit;
+        }
+
+        try {
+            $stmt = $pdo->prepare("SELECT id, reset_token_expires_at FROM users WHERE reset_token_hash = :token_hash");
+            $stmt->bindParam(':token_hash', $tokenHash);
+            $stmt->execute();
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($user && isset($user['reset_token_expires_at']) && new DateTime() < new DateTime($user['reset_token_expires_at'])) {
+                $newHashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+                
+                $stmtUpdate = $pdo->prepare("UPDATE users SET password = :password, reset_token_hash = NULL, reset_token_expires_at = NULL WHERE id = :user_id");
+                $stmtUpdate->bindParam(':password', $newHashedPassword);
+                $stmtUpdate->bindParam(':user_id', $user['id'], PDO::PARAM_INT);
+                $stmtUpdate->execute();
+
+                set_flash_message('success', 'Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.');
+                unset($_SESSION['form_data']);
+                header('Location: ' . INDEX_FILE_PATH . '?url=login');
+                exit;
+            } else {
+                set_flash_message('error', 'Lien de réinitialisation invalide ou expiré. Veuillez refaire une demande.');
+                unset($_SESSION['form_data']); 
+                header('Location: ' . INDEX_FILE_PATH . '?url=forgot_password');
+                exit;
+            }
+        } catch (PDOException $e) {
+            set_flash_message('error', 'Erreur de base de données lors de la réinitialisation.');
+            error_log("Erreur PDO (processResetPassword) : " . $e->getMessage());
+            header('Location: ' . INDEX_FILE_PATH . '?url=reset_password_form&token=' . urlencode($token));
+            exit;
+        } catch (Exception $e) { 
+            set_flash_message('error', 'Erreur système lors de la vérification du jeton.');
+            error_log("Erreur DateTime (processResetPassword) : " . $e->getMessage());
+            header('Location: ' . INDEX_FILE_PATH . '?url=login');
+            exit;
+        }
+    }
 }
 ?>

@@ -5,17 +5,13 @@ class ProductController {
 
     /**
      * Affiche le formulaire pour ajouter un nouveau produit.
-     * Récupère les données de formulaire précédemment soumises en cas d'erreur pour repopulation.
      */
     public function showAddForm() {
         ensureUserIsLoggedIn();
         $pageTitle = "Vendre un article - SHOPCESSORY";
-        
         $formData = isset($_SESSION['form_data']) ? $_SESSION['form_data'] : [];
-        unset($_SESSION['form_data']); 
-
+        unset($_SESSION['form_data']);
         extract(['pageTitle' => $pageTitle, 'formData' => $formData]);
-
         $contentView = APP_PATH . '/views/product/add_form.php';
         require_once APP_PATH . '/views/layout.php';
     }
@@ -46,12 +42,12 @@ class ProductController {
                     $imageNameForDb = uniqid('', true) . "." . $imageExt;
                     $uploadDir = PRODUCT_IMAGE_UPLOAD_DIR; $imageDestination = $uploadDir . $imageNameForDb;
                     if (!is_dir($uploadDir)) { $errors['image_dir_missing'] = "Erreur serveur: Dossier d'upload manquant."; error_log("Dossier d'upload manquant: " . $uploadDir); }
-                    elseif (!is_writable($uploadDir)) { $errors['image_dir_unwritable'] = "Erreur serveur: Dossier d'upload non accessible en écriture."; error_log("Dossier d'upload non accessible en écriture: " . $uploadDir); }
+                    elseif (!is_writable($uploadDir)) { $errors['image_dir_unwritable'] = "Erreur serveur: Dossier d'upload non accessible."; error_log("Dossier d'upload non accessible: " . $uploadDir); }
                     elseif (!move_uploaded_file($imageTmpName, $imageDestination)) { $errors['image_upload'] = "Erreur lors de l'enregistrement de l'image."; $imageNameForDb = null; }
                 } else { $errors['image_size'] = "L'image est trop volumineuse (max 2MB)."; }
-            } else { $errors['image_type'] = "Type de fichier non autorisé (jpg, jpeg, png, gif uniquement)."; }
+            } else { $errors['image_type'] = "Type de fichier non autorisé (jpg, jpeg, png, gif)."; }
         } elseif (isset($_FILES['product_image']) && $_FILES['product_image']['error'] !== UPLOAD_ERR_NO_FILE) {
-            $errors['image_generic'] = "Une erreur s'est produite avec l'upload de l'image (Code d'erreur PHP: " . $_FILES['product_image']['error'] . ").";
+            $errors['image_generic'] = "Erreur d'upload image (Code PHP: " . $_FILES['product_image']['error'] . ").";
         }
 
         if (!empty($errors)) {
@@ -64,7 +60,7 @@ class ProductController {
         $pdo = getPDOConnection();
         if (!$pdo) { 
             set_flash_message('error', "Erreur critique : Impossible de se connecter à la base de données.");
-            error_log("Erreur critique de connexion DB dans processAddProduct pour ProductController."); 
+            error_log("Erreur critique de connexion DB dans processAddProduct."); 
             $_SESSION['form_data'] = $_POST;
             header('Location: ' . INDEX_FILE_PATH . '?url=product_add');
             exit; 
@@ -90,7 +86,6 @@ class ProductController {
 
     /**
      * Affiche la page de détail d'un produit spécifique.
-     * @param int $productId L'ID du produit à afficher.
      */
     public function showProductDetail($productId) {
         if (empty($productId) || !filter_var($productId, FILTER_VALIDATE_INT) || $productId <= 0) {
@@ -135,7 +130,6 @@ class ProductController {
 
     /**
      * Traite la suppression d'un produit par son propriétaire.
-     * @param int $productId L'ID du produit à supprimer.
      */
     public function processProductDelete($productId) {
         ensureUserIsLoggedIn();
@@ -161,6 +155,8 @@ class ProductController {
             if (!$product) {
                 set_flash_message('error', 'Produit non trouvé pour la suppression.');
             } elseif ($product['user_id'] != $_SESSION['user_id']) {
+                // Seul un admin peut supprimer un produit qui ne lui appartient pas via AdminController.
+                // Ici, on vérifie que l'utilisateur est bien le propriétaire.
                 set_flash_message('error', 'Accès non autorisé. Vous ne pouvez pas supprimer cette annonce.');
             } else {
                 $sqlDelete = "DELETE FROM products WHERE id = :id AND user_id = :user_id";
@@ -184,9 +180,71 @@ class ProductController {
             set_flash_message('error', 'Erreur technique lors de la suppression.');
             error_log("Erreur PDO (processProductDelete) : " . $e->getMessage());
         }
-        // Rediriger vers le tableau de bord de l'utilisateur ou la page d'accueil
-        header('Location: ' . INDEX_FILE_PATH . '?url=dashboard'); 
+        header('Location: ' . INDEX_FILE_PATH . '?url=my_products'); // Rediriger vers la liste des annonces de l'utilisateur
         exit;
+    }
+
+    /**
+     * Affiche la liste de tous les produits pour le public.
+     */
+    public function listAllPublicProducts() {
+        $pageTitle = "Tous nos produits - SHOPCESSORY";
+        $products = [];
+        $pdo = getPDOConnection();
+
+        if ($pdo) {
+            try {
+                $sql = "SELECT p.id, p.user_id, p.title, p.description, p.price, p.image_path, p.created_at, u.username AS seller_username 
+                        FROM products p
+                        JOIN users u ON p.user_id = u.id
+                        ORDER BY p.created_at DESC";
+                $stmt = $pdo->query($sql);
+                if ($stmt) {
+                    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                }
+            } catch (PDOException $e) {
+                error_log("Erreur listAllPublicProducts: " . $e->getMessage());
+                set_flash_message('error', 'Impossible de charger les produits.');
+            }
+        } else {
+            set_flash_message('error', 'Erreur de connexion BDD.');
+        }
+        extract(['pageTitle' => $pageTitle, 'products' => $products]);
+        $contentView = APP_PATH . '/views/product/products_list_public.php'; // Vue dédiée
+        require_once APP_PATH . '/views/layout.php';
+    }
+
+    /**
+     * Affiche la liste des produits postés par l'utilisateur connecté ("Mes Annonces").
+     */
+    public function listMyProducts() {
+        ensureUserIsLoggedIn(); 
+
+        $pageTitle = "Mes Annonces - SHOPCESSORY";
+        $myProducts = [];
+        $userId = $_SESSION['user_id'];
+        $pdo = getPDOConnection();
+
+        if ($pdo) {
+            try {
+                $sql = "SELECT id, title, description, price, image_path, created_at 
+                        FROM products 
+                        WHERE user_id = :user_id 
+                        ORDER BY created_at DESC";
+                $stmt = $pdo->prepare($sql);
+                $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+                $stmt->execute();
+                $myProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } catch (PDOException $e) {
+                error_log("Erreur listMyProducts pour user $userId: " . $e->getMessage());
+                set_flash_message('error', 'Impossible de charger vos annonces.');
+            }
+        } else {
+            set_flash_message('error', 'Erreur de connexion BDD.');
+        }
+        extract(['pageTitle' => $pageTitle, 'myProducts' => $myProducts]);
+        $contentView = APP_PATH . '/views/product/my_products_list.php'; // Vue dédiée
+        require_once APP_PATH . '/views/layout.php';
     }
 }
 ?>

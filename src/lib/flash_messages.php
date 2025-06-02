@@ -23,7 +23,7 @@ function display_flash_messages(): void {
         echo '<div class="flash-messages-container">';
         foreach ($messages as $msg) {
             $typeClass = htmlspecialchars($msg['type']) . '-message';
-            echo '<p class="message ' . $typeClass . '">' . htmlspecialchars($msg['message']) . '</p>';
+            echo '<p class="message ' . $typeClass . '">' . $msg['message'] . '</p>'; // Message non échappé pour permettre le HTML
         }
         echo '</div>';
     }

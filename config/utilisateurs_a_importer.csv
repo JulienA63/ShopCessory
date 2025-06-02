@@ -1,0 +1,16 @@
+firstname,lastname,username,email,password,role
+Sophie,Lefevre,sophiel,sophie.lefevre@example.com,passSophie123,user
+Lucas,Moreau,lucasm,lucas.moreau@example.com,passLucas456,user
+Chloe,Girard,chloeg,chloe.girard@example.com,passChloe789,user
+Gabriel,Petit,gabrielp,gabriel.petit@example.com,gabPass1!,admin
+Manon,Roux,manonr,manon.roux@example.com,manonSecure,user
+Louis,David,louisd,louis.david@example.com,louisPwd,user
+Emma,Bertrand,emmab,emma.bertrand@example.com,emmaTest,user
+Arthur,Lambert,arthurl,arthur.lambert@example.com,arthur123,user
+Alice,Fontaine,alicef,alice.fontaine@example.com,alicePass,user
+Jules,Rousseau,julesr,jules.rousseau@example.com,jules456,user
+Louise,Vincent,louisev,louise.vincent@example.com,louisePwd7,user
+Hugo,Fournier,hugof,hugo.fournier@example.com,hugoHugo,admin
+Lea,Morel,leam,lea.morel@example.com,leaPass!!,user
+Adam,Andre,adama,adam.andre@example.com,adamSecret,user
+Camille,Barbier,camilleb,camille.barbier@example.com,camille123,user

@@ -7,7 +7,6 @@
 <h2>Réinitialiser votre mot de passe</h2>
 
 <form action="<?php echo INDEX_FILE_PATH; ?>?url=reset_password_process" method="POST">
-    {/* Champ caché pour envoyer le jeton avec le formulaire */}
     <input type="hidden" name="token" value="<?php echo isset($token) ? htmlspecialchars($token) : ''; ?>">
 
     <div>
