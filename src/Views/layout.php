@@ -19,7 +19,7 @@
             <?php if (isUserLoggedIn()): ?>
                 <span>Bienvenue, <?php echo htmlspecialchars($_SESSION['username']); ?> !</span>
                 <?php if (isAdmin()): ?>
-                    <a href="<?php echo INDEX_FILE_PATH; ?>?url=admin_dashboard" style="color: #ffc107; font-weight: bold;">Administration</a>
+                    <a href="<?php echo INDEX_FILE_PATH; ?>?url=admin_dashboard" class="admin-link">Administration</a>
                 <?php endif; ?>
                 <a href="<?php echo INDEX_FILE_PATH; ?>?url=dashboard">Mon Compte</a>
                 <a href="<?php echo INDEX_FILE_PATH; ?>?url=product_add">Vendre un article</a>
@@ -31,6 +31,7 @@
         </nav>
     </header>
     <main class="container">
+        <?php display_flash_messages(); ?>
         <?php
         if (isset($contentView) && file_exists($contentView)) {
             require_once $contentView;

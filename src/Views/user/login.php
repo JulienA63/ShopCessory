@@ -19,6 +19,4 @@
         <button type="submit" class="button-like">Se connecter</button>
     </div>
 </form>
-
-<p><a href="<?php echo INDEX_FILE_PATH; ?>?url=forgot_password">Mot de passe oublié ?</a></p>
 <p>Pas encore de compte ? <a href="<?php echo INDEX_FILE_PATH; ?>?url=inscription">Inscrivez-vous ici</a></p>

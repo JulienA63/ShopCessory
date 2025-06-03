@@ -1,13 +1,13 @@
 <?php
+// src/views/admin/product_form.php
 $isEditMode = (isset($productToEdit) && !empty($productToEdit['id']));
-$submitButtonText = $isEditMode ? "Mettre à jour l'annonce" : "Créer l'annonce"; // (Pour une future création par admin)
-                                                                              // Pour l'instant, ce formulaire est utilisé seulement pour l'édition.
+$submitButtonText = $isEditMode ? "Mettre à jour l'annonce" : "Créer l'annonce";
 ?>
 
 <h2><?php echo htmlspecialchars($pageTitle); ?></h2>
 
 <?php if (!empty($errors)): ?>
-    <div class="message error-message" style="border: 1px solid red; padding: 10px; margin-bottom: 15px;">
+    <div class="message error-message"> {/* Classe pour styler le conteneur d'erreurs */}
         <p><strong>Veuillez corriger les erreurs suivantes :</strong></p>
         <ul>
             <?php foreach ($errors as $error): ?>
@@ -20,24 +20,24 @@ $submitButtonText = $isEditMode ? "Mettre à jour l'annonce" : "Créer l'annonce
 <form action="<?php echo htmlspecialchars($formActionUrl); ?>" method="POST" enctype="multipart/form-data">
     <div>
         <label for="title">Titre de l'annonce :</label>
-        <input type="text" id="title" name="title" value="<?php echo htmlspecialchars($isEditMode ? $productToEdit['title'] : ''); ?>" required>
+        <input type="text" id="title" name="title" value="<?php echo htmlspecialchars(isset($formData['title']) ? $formData['title'] : ($isEditMode && isset($productToEdit['title']) ? $productToEdit['title'] : '')); ?>" required>
     </div>
     <div>
         <label for="description">Description :</label>
-        <textarea id="description" name="description" rows="5"><?php echo htmlspecialchars($isEditMode ? $productToEdit['description'] : ''); ?></textarea>
+        <textarea id="description" name="description" rows="5"><?php echo htmlspecialchars(isset($formData['description']) ? $formData['description'] : ($isEditMode && isset($productToEdit['description']) ? $productToEdit['description'] : '')); ?></textarea>
     </div>
     <div>
         <label for="price">Prix (€) :</label>
-        <input type="number" id="price" name="price" step="0.01" min="0" value="<?php echo htmlspecialchars($isEditMode ? $productToEdit['price'] : ''); ?>" required>
+        <input type="number" id="price" name="price" step="0.01" min="0" value="<?php echo htmlspecialchars(isset($formData['price']) ? $formData['price'] : ($isEditMode && isset($productToEdit['price']) ? $productToEdit['price'] : '')); ?>" required>
     </div>
     
     <?php if ($isEditMode && !empty($productToEdit['image_path'])): ?>
         <div>
             <p>Image actuelle :</p>
-            <img src="<?php echo PRODUCT_IMAGE_BASE_URL . htmlspecialchars($productToEdit['image_path']); ?>" alt="Image actuelle" style="max-width: 200px; max-height: 200px; margin-bottom: 10px; border:1px solid #ddd;">
+            <img class="current-product-image-admin" src="<?php echo PRODUCT_IMAGE_BASE_URL . htmlspecialchars($productToEdit['image_path']); ?>" alt="Image actuelle">
             <br>
             <input type="checkbox" name="delete_image" id="delete_image" value="1">
-            <label for="delete_image" style="display:inline; font-weight:normal;">Supprimer l'image actuelle (si cochée, aucune nouvelle image ne sera prise en compte pour cet envoi, et l'ancienne sera supprimée).</label>
+            <label for="delete_image" class="inline-label">Supprimer l'image actuelle.</label>
         </div>
     <?php endif; ?>
     
@@ -54,4 +54,4 @@ $submitButtonText = $isEditMode ? "Mettre à jour l'annonce" : "Créer l'annonce
     </div>
 </form>
 
-<p style="margin-top: 20px;"><a href="<?php echo INDEX_FILE_PATH; ?>?url=admin_products_list">&laquo; Retour à la liste des annonces</a></p>
+<p><a href="<?php echo INDEX_FILE_PATH; ?>?url=admin_products_list" class="button-back button-like">&laquo; Retour à la liste des annonces</a></p>

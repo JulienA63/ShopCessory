@@ -2,8 +2,6 @@
 // src/views/home.php
 // Les variables $pageTitle et $products sont disponibles.
 ?>
-
-<?php // Section de bienvenue ou informations pertinentes pour la page d'accueil ?>
 <div class="welcome-banner" style="text-align: center; margin-bottom: 30px; padding: 20px; background-color: #e9f5ff; border-radius: 8px;">
     <h2>Bienvenue sur Shopcessory !</h2>
     <p>Découvrez les dernières trouvailles ou vendez vos propres accessoires.</p>

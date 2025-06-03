@@ -1,7 +1,6 @@
 <?php
 // src/views/product/detail.php
 // La variable $product est disponible ($product peut être null si non trouvé)
-echo ""; // Commentaire HTML pour le source de la page
 ?>
 
 <?php if (isset($product) && $product): ?>
@@ -28,10 +27,9 @@ echo ""; // Commentaire HTML pour le source de la page
                    onclick="return confirm('Êtes-vous sûr ?');" class="button-delete">Supprimer</a>
             </p>
         <?php endif; ?>
-        <p><a href="<?php echo INDEX_FILE_PATH; ?>?url=accueil" class="button-back">&laquo; Retour</a></p>
+        <p><a href="<?php echo INDEX_FILE_PATH; ?>?url=accueil" class="button-back button-like">&laquo; Retour</a></p>
     </article>
 <?php else: ?>
-    <?php echo ""; ?>
     <p>Le produit que vous cherchez n'a pas été trouvé.</p>
-    <p><a href="<?php echo INDEX_FILE_PATH; ?>?url=accueil">&laquo; Retour à la liste</a></p>
+    <p><a href="<?php echo INDEX_FILE_PATH; ?>?url=accueil" class="button-back button-like">&laquo; Retour à la liste</a></p>
 <?php endif; ?>

@@ -1,7 +1,6 @@
 <?php
 // src/views/product/my_products_list.php
-// $pageTitle et $myProducts (ou $products, vérifie ce qui est passé par le contrôleur ProductController::listMyProducts) sont disponibles.
-// Assumons $myProducts
+// Les variables $pageTitle et $myProducts sont disponibles.
 ?>
 <h2>Mes Annonces</h2>
 
@@ -21,7 +20,7 @@
                             <?php echo htmlspecialchars($product['title']); ?>
                         </a>
                     </h3>
-                    <p>
+                    <p class="product-description">
                         <?php 
                         $description = htmlspecialchars($product['description']);
                         if (strlen($description) > 80) { echo substr($description, 0, 80) . '...'; } 
@@ -29,11 +28,16 @@
                         ?>
                     </p>
                 </div>
-                <div>
-                    <p><strong>Prix :</strong> <?php echo htmlspecialchars(number_format($product['price'], 2, ',', ' ')); ?> €</p>
-                    <p><small>Ajouté le : <?php echo date('d/m/Y H:i', strtotime($product['created_at'])); ?></small></p>
-                    {/* Lien pour modifier (à implémenter si tu veux que l'utilisateur modifie ses propres annonces) */}
-                    {/* <a href="<?php //echo INDEX_FILE_PATH; ?>?url=product_edit_user&id=<?php //echo $product['id']; ?>" class="button-like">Modifier</a> */}
+                <div class="product-footer">
+                    <p class="price"><strong>Prix :</strong> <?php echo htmlspecialchars(number_format($product['price'], 2, ',', ' ')); ?> €</p>
+                    <p class="date-info"><small>Ajouté le : <?php echo date('d/m/Y H:i', strtotime($product['created_at'])); ?></small></p>
+                    <?php // Le commentaire parasite a été enlevé d'ici. ?>
+                    <?php // Le lien pour modifier par l'utilisateur n'est pas encore implémenté fonctionnellement.
+                          // Si tu souhaites ajouter un lien de modification qui mène à la même page que l'admin pour l'instant (en supposant que l'admin peut modifier toutes les annonces) :
+                          // Ou mieux, créer une route et une logique spécifique pour que l'utilisateur modifie sa propre annonce.
+                          // Pour l'instant, on le laisse commenté pour éviter toute confusion.
+                    ?>
+                    <a href="<?php //echo INDEX_FILE_PATH; ?>?url=product_edit_user&id=<?php //echo $product['id']; ?>" class="button-like">Modifier</a>
                     <a href="<?php echo INDEX_FILE_PATH; ?>?url=product_delete&id=<?php echo $product['id']; ?>" 
                        onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?');"
                        class="button-delete">Supprimer</a>
@@ -46,4 +50,4 @@
     <p><a href="<?php echo INDEX_FILE_PATH; ?>?url=product_add" class="button-like">Vendre votre premier article</a></p>
 <?php endif; ?>
 
-<p style="margin-top: 20px;"><a href="<?php echo INDEX_FILE_PATH; ?>?url=dashboard">&laquo; Retour à Mon Compte</a></p>
+<p style="margin-top: 20px;"><a href="<?php echo INDEX_FILE_PATH; ?>?url=dashboard" class="button-back">&laquo; Retour à Mon Compte</a></p>

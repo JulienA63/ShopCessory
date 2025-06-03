@@ -9,4 +9,4 @@
     <li><a href="<?php echo INDEX_FILE_PATH; ?>?url=my_products">Voir mes annonces</a></li>
     <li><a href="<?php echo INDEX_FILE_PATH; ?>?url=product_add">Vendre un nouvel article</a></li>
     <li><a href="<?php echo INDEX_FILE_PATH; ?>?url=logout">Se déconnecter</a></li>
-</ul>
+</ul>   
