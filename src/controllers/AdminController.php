@@ -1,19 +1,24 @@
 <?php
-// src/controllers/AdminController.php
 
 class AdminController {
 
+    // --- Sécurité : accès admin obligatoire ---
     public function __construct() {
         ensureUserIsAdmin();
     }
 
+    // --- DASHBOARD ADMIN ---
     public function dashboard() {
         $pageTitle = "Tableau de Bord Admin - SHOPCESSORY";
         $contentView = APP_PATH . '/views/admin/dashboard.php';
         require_once APP_PATH . '/views/layout.php';
     }
 
-    // --- Gestion des Utilisateurs ---
+    // =====================================================
+    //           GESTION DES UTILISATEURS
+    // =====================================================
+
+    // 1. Lister les utilisateurs
     public function listUsers() {
         $pageTitle = "Gestion des Utilisateurs - Admin";
         $searchTerm = isset($_GET['search_term']) ? trim($_GET['search_term']) : '';
@@ -44,14 +49,15 @@ class AdminController {
                 error_log("Admin listUsers Error: " . $e->getMessage());
             }
         } else {
-             set_flash_message('error', 'Erreur de connexion BDD.');
-             error_log("Échec connexion BDD (AdminController::listUsers).");
+            set_flash_message('error', 'Erreur de connexion BDD.');
+            error_log("Échec connexion BDD (AdminController::listUsers).");
         }
         extract(['pageTitle' => $pageTitle, 'users' => $users, 'searchTerm' => $searchTerm]);
         $contentView = APP_PATH . '/views/admin/users_list.php';
         require_once APP_PATH . '/views/layout.php';
     }
-    
+
+    // 2. Afficher le formulaire de création ou d'édition utilisateur
     public function showUserForm($userId = null) {
         $pageTitle = $userId ? "Modifier Utilisateur" : "Créer Utilisateur";
         $userFromDb = null; 
@@ -65,12 +71,24 @@ class AdminController {
             if ($pdo) {
                 try {
                     $stmt = $pdo->prepare("SELECT id, firstname, lastname, username, email, role FROM users WHERE id = :id");
-                    $stmt->bindParam(':id', $userId, PDO::PARAM_INT); $stmt->execute();
+                    $stmt->bindParam(':id', $userId, PDO::PARAM_INT); 
+                    $stmt->execute();
                     $userFromDb = $stmt->fetch(PDO::FETCH_ASSOC);
-                } catch (PDOException $e) { error_log("Admin showUserForm Fetch Error: " . $e->getMessage()); $errors['db'] = "Erreur BDD."; }
-            } else { $errors['db_conn'] = "Connexion BDD impossible."; }
-            if (!$userFromDb && empty($errors)) { set_flash_message('error', "Utilisateur non trouvé."); header('Location: ' . INDEX_FILE_PATH . '?url=admin_users_list'); exit; }
-            if ($userFromDb) { $pageTitle = "Modifier: " . htmlspecialchars($userFromDb['username']); if(empty($formData)) $formData = $userFromDb; }
+                } catch (PDOException $e) { 
+                    error_log("Admin showUserForm Fetch Error: " . $e->getMessage()); 
+                    $errors['db'] = "Erreur BDD."; 
+                }
+            } else { 
+                $errors['db_conn'] = "Connexion BDD impossible."; 
+            }
+            if (!$userFromDb && empty($errors)) { 
+                set_flash_message('error', "Utilisateur non trouvé."); 
+                header('Location: ' . INDEX_FILE_PATH . '?url=admin_users_list'); exit; 
+            }
+            if ($userFromDb) { 
+                $pageTitle = "Modifier: " . htmlspecialchars($userFromDb['username']); 
+                if(empty($formData)) $formData = $userFromDb; 
+            }
             else { $pageTitle = "Erreur - Utilisateur non trouvé"; }
         }
         $availableRoles = ['user', 'admin'];
@@ -78,10 +96,11 @@ class AdminController {
         $contentView = APP_PATH . '/views/admin/user_form.php';
         require_once APP_PATH . '/views/layout.php';
     }
-    
+
+    // 3. Traiter la soumission du formulaire (création ou édition)
     public function processUserForm($userId = null) {
         $errors = [];
-        $firstname = isset($_POST['firstname']) ? trim($_POST['firstname']) : ''; /* ... idem pour lastname, username, email, password, role ... */
+        $firstname = isset($_POST['firstname']) ? trim($_POST['firstname']) : '';
         $lastname = isset($_POST['lastname']) ? trim($_POST['lastname']) : '';
         $username = isset($_POST['username']) ? trim($_POST['username']) : '';
         $email = isset($_POST['email']) ? trim($_POST['email']) : '';
@@ -117,7 +136,7 @@ class AdminController {
             $redirectUrl = $userId ? INDEX_FILE_PATH.'?url=admin_user_edit_form&id='.$userId : INDEX_FILE_PATH.'?url=admin_user_create_form';
             header('Location: ' . $redirectUrl); exit;
         }
-        
+
         try {
             if ($userId) { // Update
                 $userId = (int)$userId;
@@ -149,6 +168,7 @@ class AdminController {
         header('Location: ' . INDEX_FILE_PATH . '?url=admin_users_list'); exit;
     }
 
+    // 4. Supprimer un utilisateur
     public function deleteUser($userId) {
         $userId = (int)$userId;
         if ($userId <= 0 || (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $userId)) {
@@ -158,43 +178,73 @@ class AdminController {
         $pdo = getPDOConnection();
         try {
             $stmt = $pdo->prepare("DELETE FROM users WHERE id = :id");
-            $stmt->bindParam(':id', $userId, PDO::PARAM_INT); $stmt->execute();
+            $stmt->bindParam(':id', $userId, PDO::PARAM_INT); 
+            $stmt->execute();
             set_flash_message('success', $stmt->rowCount() ? "Utilisateur supprimé." : "Utilisateur non trouvé.");
-        } catch (PDOException $e) { set_flash_message('error', "Erreur BDD."); error_log("Admin Delete User Error: ".$e->getMessage()); }
+        } catch (PDOException $e) { 
+            set_flash_message('error', "Erreur BDD."); 
+            error_log("Admin Delete User Error: ".$e->getMessage()); 
+        }
         header('Location: ' . INDEX_FILE_PATH . '?url=admin_users_list'); exit;
     }
-    
-    // --- Gestion des Produits (par l'admin) ---
+
+    // =====================================================
+    //           GESTION DES PRODUITS (Annonces)
+    // =====================================================
+
+    // 1. Lister les annonces (produits)
     public function listAllProducts() {
         $pageTitle = "Gestion Annonces - Admin";
         $products = []; $pdo = getPDOConnection();
-        if ($pdo) { try {
+        if ($pdo) { 
+            try {
                 $sql = "SELECT p.id, p.title, p.price, u.username AS seller_username, p.image_path FROM products p JOIN users u ON p.user_id = u.id ORDER BY p.created_at DESC";
-                $stmt = $pdo->query($sql); if ($stmt) { $products = $stmt->fetchAll(PDO::FETCH_ASSOC); }
-            } catch (PDOException $e) { error_log("Admin listAllProducts Error: " . $e->getMessage()); set_flash_message('error', 'Erreur récupération annonces.');}
-        } else { set_flash_message('error', 'Erreur connexion BDD.'); }
+                $stmt = $pdo->query($sql); 
+                if ($stmt) { $products = $stmt->fetchAll(PDO::FETCH_ASSOC); }
+            } catch (PDOException $e) { 
+                error_log("Admin listAllProducts Error: " . $e->getMessage()); 
+                set_flash_message('error', 'Erreur récupération annonces.');
+            }
+        } else { 
+            set_flash_message('error', 'Erreur connexion BDD.'); 
+        }
         extract(['pageTitle' => $pageTitle, 'products' => $products]);
         $contentView = APP_PATH . '/views/admin/products_list.php';
         require_once APP_PATH . '/views/layout.php';
     }
 
+    // 2. Formulaire édition annonce
     public function showProductEditForm($productId) {
         $pageTitle = "Modifier Annonce - Admin";
         $productToEdit = null; $errors = [];
-        $formData = isset($_SESSION['form_data']) ? $_SESSION['form_data'] : []; unset($_SESSION['form_data']);
+        $formData = isset($_SESSION['form_data']) ? $_SESSION['form_data'] : []; 
+        unset($_SESSION['form_data']);
         $productId = (int)$productId;
-        if ($productId <= 0) { set_flash_message('error', 'ID produit invalide.'); header('Location: '.INDEX_FILE_PATH.'?url=admin_products_list'); exit;}
+        if ($productId <= 0) { 
+            set_flash_message('error', 'ID produit invalide.'); 
+            header('Location: '.INDEX_FILE_PATH.'?url=admin_products_list'); exit;
+        }
         
         $pdo = getPDOConnection();
-        if ($pdo) { try {
+        if ($pdo) { 
+            try {
                 $stmt = $pdo->prepare("SELECT id, title, description, price, image_path FROM products WHERE id = :id");
-                $stmt->bindParam(':id', $productId, PDO::PARAM_INT); $stmt->execute();
+                $stmt->bindParam(':id', $productId, PDO::PARAM_INT); 
+                $stmt->execute();
                 $productToEdit = $stmt->fetch(PDO::FETCH_ASSOC);
-            } catch (PDOException $e) { error_log("Admin showProductEditForm Error: ".$e->getMessage()); $errors['db'] = "Erreur BDD.";}
+            } catch (PDOException $e) { 
+                error_log("Admin showProductEditForm Error: ".$e->getMessage()); 
+                $errors['db'] = "Erreur BDD.";
+            }
         } else { $errors['db_conn'] = "Connexion BDD impossible.";}
-        if (!$productToEdit && empty($errors)) { $errors['not_found'] = "Produit non trouvé (ID: ".$productId.")."; }
+        if (!$productToEdit && empty($errors)) { 
+            $errors['not_found'] = "Produit non trouvé (ID: ".$productId.")."; 
+        }
 
-        if ($productToEdit) { $pageTitle = "Modifier: " . htmlspecialchars($productToEdit['title']); if(empty($formData)) $formData = $productToEdit; }
+        if ($productToEdit) { 
+            $pageTitle = "Modifier: " . htmlspecialchars($productToEdit['title']); 
+            if(empty($formData)) $formData = $productToEdit; 
+        }
         elseif(!empty($errors)) { $pageTitle = "Erreur Modification Annonce"; }
         
         $formActionUrl = INDEX_FILE_PATH . '?url=admin_product_edit_process&id=' . $productId;
@@ -203,9 +253,13 @@ class AdminController {
         require_once APP_PATH . '/views/layout.php';
     }
 
+    // 3. Traiter la soumission du formulaire d'édition annonce
     public function processProductEdit($productId) {
         $productId = (int)$productId; $errors = [];
-        if ($productId <= 0) { set_flash_message('error', 'ID produit invalide.'); header('Location: '.INDEX_FILE_PATH.'?url=admin_products_list'); exit;}
+        if ($productId <= 0) { 
+            set_flash_message('error', 'ID produit invalide.'); 
+            header('Location: '.INDEX_FILE_PATH.'?url=admin_products_list'); exit;
+        }
         
         $title = isset($_POST['title']) ? trim($_POST['title']) : '';
         $description = isset($_POST['description']) ? trim($_POST['description']) : '';
@@ -213,7 +267,8 @@ class AdminController {
         $delete_image_checkbox = isset($_POST['delete_image']) && $_POST['delete_image'] == '1';
 
         if (empty($title)) { $errors[] = "Titre requis."; }
-        if (empty($price)) { $errors[] = "Prix requis."; } elseif (!is_numeric($price) || $price < 0) { $errors[] = "Prix invalide."; }
+        if (empty($price)) { $errors[] = "Prix requis."; } 
+        elseif (!is_numeric($price) || $price < 0) { $errors[] = "Prix invalide."; }
 
         $pdo = getPDOConnection();
         if (!$pdo) { $errors[] = "Erreur connexion BDD."; }
@@ -221,7 +276,8 @@ class AdminController {
         $currentImagePath = null;
         if ($pdo) { // Récupérer l'image actuelle pour la gestion
             $stmtCurrent = $pdo->prepare("SELECT image_path FROM products WHERE id = :id");
-            $stmtCurrent->bindParam(':id', $productId, PDO::PARAM_INT); $stmtCurrent->execute();
+            $stmtCurrent->bindParam(':id', $productId, PDO::PARAM_INT); 
+            $stmtCurrent->execute();
             $currentProductData = $stmtCurrent->fetch(PDO::FETCH_ASSOC);
             if (!$currentProductData) { $errors[] = "Produit original non trouvé pour la mise à jour."; }
             else { $currentImagePath = $currentProductData['image_path']; }
@@ -237,16 +293,20 @@ class AdminController {
         } elseif (isset($_FILES['product_image']) && $_FILES['product_image']['error'] === UPLOAD_ERR_OK) { // Si une nouvelle image est uploadée
             $image = $_FILES['product_image']; $imageTmpName = $image['tmp_name']; $imageSize = $image['size'];
             $imageExt = strtolower(pathinfo($image['name'], PATHINFO_EXTENSION)); $allowedExts = ['jpg','jpeg','png','gif'];
-            if (in_array($imageExt, $allowedExts)) { if ($imageSize < 2000000) {
-                if (!empty($currentImagePath) && file_exists(PRODUCT_IMAGE_UPLOAD_DIR . $currentImagePath)) { unlink(PRODUCT_IMAGE_UPLOAD_DIR . $currentImagePath); } // Supprimer l'ancienne
-                $newImageNameForDb = uniqid('', true) . "." . $imageExt;
-                if (!move_uploaded_file($imageTmpName, PRODUCT_IMAGE_UPLOAD_DIR . $newImageNameForDb)) {
-                    $errors[] = "Erreur upload nouvelle image."; $newImageNameForDb = $currentImagePath; // Remettre l'ancienne si échec
-                }
-            } else { $errors[] = "Nouvelle image trop volumineuse."; } } else { $errors[] = "Type fichier nouvelle image invalide."; }
+            if (in_array($imageExt, $allowedExts)) { 
+                if ($imageSize < 2000000) {
+                    if (!empty($currentImagePath) && file_exists(PRODUCT_IMAGE_UPLOAD_DIR . $currentImagePath)) { 
+                        unlink(PRODUCT_IMAGE_UPLOAD_DIR . $currentImagePath); 
+                    } // Supprimer l'ancienne
+                    $newImageNameForDb = uniqid('', true) . "." . $imageExt;
+                    if (!move_uploaded_file($imageTmpName, PRODUCT_IMAGE_UPLOAD_DIR . $newImageNameForDb)) {
+                        $errors[] = "Erreur upload nouvelle image."; 
+                        $newImageNameForDb = $currentImagePath; // Remettre l'ancienne si échec
+                    }
+                } else { $errors[] = "Nouvelle image trop volumineuse."; } 
+            } else { $errors[] = "Type fichier nouvelle image invalide."; }
         }
         // Si $errors est toujours vide après la gestion d'image, on continue.
-        // Sinon, les erreurs d'image sont déjà dans $errors.
 
         if (!empty($errors)) {
             foreach($errors as $errorMsg) { set_flash_message('error', $errorMsg); }
@@ -271,15 +331,23 @@ class AdminController {
         header('Location: ' . INDEX_FILE_PATH . '?url=admin_products_list'); exit;
     }
 
+    // 4. Supprimer une annonce
     public function deleteProductByAdmin($productId) {
         $productId = (int)$productId;
-        if ($productId <= 0) { set_flash_message('error', "ID produit invalide."); header('Location: '.INDEX_FILE_PATH.'?url=admin_products_list'); exit; }
+        if ($productId <= 0) { 
+            set_flash_message('error', "ID produit invalide."); 
+            header('Location: '.INDEX_FILE_PATH.'?url=admin_products_list'); exit; 
+        }
         
         $pdo = getPDOConnection();
-        if (!$pdo) { set_flash_message('error', "Erreur connexion BDD."); header('Location: '.INDEX_FILE_PATH.'?url=admin_products_list'); exit; }
+        if (!$pdo) { 
+            set_flash_message('error', "Erreur connexion BDD."); 
+            header('Location: '.INDEX_FILE_PATH.'?url=admin_products_list'); exit; 
+        }
         try {
             $stmtSelect = $pdo->prepare("SELECT image_path FROM products WHERE id = :id");
-            $stmtSelect->bindParam(':id', $productId, PDO::PARAM_INT); $stmtSelect->execute();
+            $stmtSelect->bindParam(':id', $productId, PDO::PARAM_INT); 
+            $stmtSelect->execute();
             $imagePath = $stmtSelect->fetchColumn();
 
             $stmtDelete = $pdo->prepare("DELETE FROM products WHERE id = :id");
@@ -289,9 +357,16 @@ class AdminController {
                     if(!unlink(PRODUCT_IMAGE_UPLOAD_DIR . $imagePath)) error_log("Erreur suppression image admin: ".$imagePath);
                 }
                 set_flash_message('success', "Annonce supprimée.");
-            } else { set_flash_message('error', "Annonce non trouvée ou déjà supprimée."); }
-        } catch (PDOException $e) { set_flash_message('error', "Erreur BDD suppression annonce."); error_log("Admin Delete Product Error: ".$e->getMessage()); }
+            } else { 
+                set_flash_message('error', "Annonce non trouvée ou déjà supprimée."); 
+            }
+        } catch (PDOException $e) { 
+            set_flash_message('error', "Erreur BDD suppression annonce."); 
+            error_log("Admin Delete Product Error: ".$e->getMessage()); 
+        }
         header('Location: ' . INDEX_FILE_PATH . '?url=admin_products_list'); exit;
     }
+
 }
+
 ?>

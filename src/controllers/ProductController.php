@@ -3,8 +3,123 @@
 
 class ProductController {
 
+    // =====================================================
+    //        LISTINGS ET AFFICHAGE PRODUIT(S)
+    // =====================================================
+
     /**
-     * Affiche le formulaire pour ajouter un nouveau produit.
+     * Affiche la liste de tous les produits (public).
+     */
+    public function listAllPublicProducts() {
+        $pageTitle = "Tous nos produits - SHOPCESSORY";
+        $products = [];
+        $pdo = getPDOConnection();
+
+        if ($pdo) {
+            try {
+                $sql = "SELECT p.id, p.user_id, p.title, p.description, p.price, p.image_path, p.created_at, u.username AS seller_username 
+                        FROM products p
+                        JOIN users u ON p.user_id = u.id
+                        ORDER BY p.created_at DESC";
+                $stmt = $pdo->query($sql);
+                if ($stmt) {
+                    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                }
+            } catch (PDOException $e) {
+                error_log("Erreur listAllPublicProducts: " . $e->getMessage());
+                set_flash_message('error', 'Impossible de charger les produits.');
+            }
+        } else {
+            set_flash_message('error', 'Erreur de connexion BDD.');
+        }
+        extract(['pageTitle' => $pageTitle, 'products' => $products]);
+        $contentView = APP_PATH . '/views/product/products_list_public.php';
+        require_once APP_PATH . '/views/layout.php';
+    }
+
+    /**
+     * Affiche la liste des produits postés par l'utilisateur connecté ("Mes Annonces").
+     */
+    public function listMyProducts() {
+        ensureUserIsLoggedIn(); 
+
+        $pageTitle = "Mes Annonces - SHOPCESSORY";
+        $myProducts = [];
+        $userId = $_SESSION['user_id'];
+        $pdo = getPDOConnection();
+
+        if ($pdo) {
+            try {
+                $sql = "SELECT id, title, description, price, image_path, created_at 
+                        FROM products 
+                        WHERE user_id = :user_id 
+                        ORDER BY created_at DESC";
+                $stmt = $pdo->prepare($sql);
+                $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+                $stmt->execute();
+                $myProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } catch (PDOException $e) {
+                error_log("Erreur listMyProducts pour user $userId: " . $e->getMessage());
+                set_flash_message('error', 'Impossible de charger vos annonces.');
+            }
+        } else {
+            set_flash_message('error', 'Erreur de connexion BDD.');
+        }
+        extract(['pageTitle' => $pageTitle, 'myProducts' => $myProducts]);
+        $contentView = APP_PATH . '/views/product/my_products_list.php';
+        require_once APP_PATH . '/views/layout.php';
+    }
+
+    /**
+     * Affiche la page de détail d'un produit spécifique.
+     */
+    public function showProductDetail($productId) {
+        if (empty($productId) || !filter_var($productId, FILTER_VALIDATE_INT) || $productId <= 0) {
+            set_flash_message('error', 'ID de produit non valide.');
+            header('Location: ' . INDEX_FILE_PATH . '?url=accueil');
+            exit;
+        }
+        $product = null; 
+        $pdo = getPDOConnection();
+        if ($pdo) {
+            try {
+                $sql = "SELECT p.*, u.username AS seller_username 
+                        FROM products p 
+                        JOIN users u ON p.user_id = u.id 
+                        WHERE p.id = :id";
+                $stmt = $pdo->prepare($sql);
+                $stmt->bindParam(':id', $productId, PDO::PARAM_INT);
+                $stmt->execute();
+                $product = $stmt->fetch(PDO::FETCH_ASSOC);
+            } catch (PDOException $e) { 
+                error_log("Erreur récup produit ID $productId : " . $e->getMessage());
+                set_flash_message('error', 'Erreur lors de la récupération des détails du produit.');
+            }
+        } else { 
+            error_log("Échec connexion BDD (showProductDetail).");
+            set_flash_message('error', 'Erreur de connexion à la base de données.');
+        }
+
+        if (!$product) {
+            if(!isset($_SESSION['flash_messages'])) { 
+                 set_flash_message('error', 'Produit non trouvé.');
+            }
+            header('Location: ' . INDEX_FILE_PATH . '?url=accueil');
+            exit;
+        }
+        
+        $pageTitle = htmlspecialchars($product['title']) . " - SHOPCESSORY";
+        extract(['product' => $product, 'pageTitle' => $pageTitle]); 
+        $contentView = APP_PATH . '/views/product/detail.php';
+        require_once APP_PATH . '/views/layout.php';
+    }
+
+    // =====================================================
+    //           AJOUTER UN PRODUIT (formulaire + traitement)
+    // =====================================================
+
+    /**
+     * Affiche le formulaire d'ajout de produit.
      */
     public function showAddForm() {
         ensureUserIsLoggedIn();
@@ -33,6 +148,7 @@ class ProductController {
         elseif (!is_numeric($price) || $price < 0) { $errors['price_invalid'] = "Le prix doit être un nombre positif."; }
         if (empty($userId)) { $errors['auth'] = "Utilisateur non identifié. Veuillez vous reconnecter."; }
 
+        // Gestion de l'image
         if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] === UPLOAD_ERR_OK) {
             $image = $_FILES['product_image']; $imageTmpName = $image['tmp_name']; $imageSize = $image['size'];
             $imageExt = strtolower(pathinfo($image['name'], PATHINFO_EXTENSION));
@@ -84,49 +200,9 @@ class ProductController {
         }
     }
 
-    /**
-     * Affiche la page de détail d'un produit spécifique.
-     */
-    public function showProductDetail($productId) {
-        if (empty($productId) || !filter_var($productId, FILTER_VALIDATE_INT) || $productId <= 0) {
-            set_flash_message('error', 'ID de produit non valide.');
-            header('Location: ' . INDEX_FILE_PATH . '?url=accueil');
-            exit;
-        }
-        $product = null; 
-        $pdo = getPDOConnection();
-        if ($pdo) {
-            try {
-                $sql = "SELECT p.*, u.username AS seller_username 
-                        FROM products p 
-                        JOIN users u ON p.user_id = u.id 
-                        WHERE p.id = :id";
-                $stmt = $pdo->prepare($sql);
-                $stmt->bindParam(':id', $productId, PDO::PARAM_INT);
-                $stmt->execute();
-                $product = $stmt->fetch(PDO::FETCH_ASSOC);
-            } catch (PDOException $e) { 
-                error_log("Erreur récup produit ID $productId : " . $e->getMessage());
-                set_flash_message('error', 'Erreur lors de la récupération des détails du produit.');
-            }
-        } else { 
-            error_log("Échec connexion BDD (showProductDetail).");
-            set_flash_message('error', 'Erreur de connexion à la base de données.');
-        }
-
-        if (!$product) {
-            if(!isset($_SESSION['flash_messages'])) { 
-                 set_flash_message('error', 'Produit non trouvé.');
-            }
-            header('Location: ' . INDEX_FILE_PATH . '?url=accueil');
-            exit;
-        }
-        
-        $pageTitle = htmlspecialchars($product['title']) . " - SHOPCESSORY";
-        extract(['product' => $product, 'pageTitle' => $pageTitle]); 
-        $contentView = APP_PATH . '/views/product/detail.php';
-        require_once APP_PATH . '/views/layout.php';
-    }
+    // =====================================================
+    //        SUPPRESSION D'UN PRODUIT PAR PROPRIÉTAIRE
+    // =====================================================
 
     /**
      * Traite la suppression d'un produit par son propriétaire.
@@ -155,8 +231,6 @@ class ProductController {
             if (!$product) {
                 set_flash_message('error', 'Produit non trouvé pour la suppression.');
             } elseif ($product['user_id'] != $_SESSION['user_id']) {
-                // Seul un admin peut supprimer un produit qui ne lui appartient pas via AdminController.
-                // Ici, on vérifie que l'utilisateur est bien le propriétaire.
                 set_flash_message('error', 'Accès non autorisé. Vous ne pouvez pas supprimer cette annonce.');
             } else {
                 $sqlDelete = "DELETE FROM products WHERE id = :id AND user_id = :user_id";
@@ -180,71 +254,9 @@ class ProductController {
             set_flash_message('error', 'Erreur technique lors de la suppression.');
             error_log("Erreur PDO (processProductDelete) : " . $e->getMessage());
         }
-        header('Location: ' . INDEX_FILE_PATH . '?url=my_products'); // Rediriger vers la liste des annonces de l'utilisateur
+        header('Location: ' . INDEX_FILE_PATH . '?url=my_products');
         exit;
     }
 
-    /**
-     * Affiche la liste de tous les produits pour le public.
-     */
-    public function listAllPublicProducts() {
-        $pageTitle = "Tous nos produits - SHOPCESSORY";
-        $products = [];
-        $pdo = getPDOConnection();
-
-        if ($pdo) {
-            try {
-                $sql = "SELECT p.id, p.user_id, p.title, p.description, p.price, p.image_path, p.created_at, u.username AS seller_username 
-                        FROM products p
-                        JOIN users u ON p.user_id = u.id
-                        ORDER BY p.created_at DESC";
-                $stmt = $pdo->query($sql);
-                if ($stmt) {
-                    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                }
-            } catch (PDOException $e) {
-                error_log("Erreur listAllPublicProducts: " . $e->getMessage());
-                set_flash_message('error', 'Impossible de charger les produits.');
-            }
-        } else {
-            set_flash_message('error', 'Erreur de connexion BDD.');
-        }
-        extract(['pageTitle' => $pageTitle, 'products' => $products]);
-        $contentView = APP_PATH . '/views/product/products_list_public.php'; // Vue dédiée
-        require_once APP_PATH . '/views/layout.php';
-    }
-
-    /**
-     * Affiche la liste des produits postés par l'utilisateur connecté ("Mes Annonces").
-     */
-    public function listMyProducts() {
-        ensureUserIsLoggedIn(); 
-
-        $pageTitle = "Mes Annonces - SHOPCESSORY";
-        $myProducts = [];
-        $userId = $_SESSION['user_id'];
-        $pdo = getPDOConnection();
-
-        if ($pdo) {
-            try {
-                $sql = "SELECT id, title, description, price, image_path, created_at 
-                        FROM products 
-                        WHERE user_id = :user_id 
-                        ORDER BY created_at DESC";
-                $stmt = $pdo->prepare($sql);
-                $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
-                $stmt->execute();
-                $myProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            } catch (PDOException $e) {
-                error_log("Erreur listMyProducts pour user $userId: " . $e->getMessage());
-                set_flash_message('error', 'Impossible de charger vos annonces.');
-            }
-        } else {
-            set_flash_message('error', 'Erreur de connexion BDD.');
-        }
-        extract(['pageTitle' => $pageTitle, 'myProducts' => $myProducts]);
-        $contentView = APP_PATH . '/views/product/my_products_list.php'; // Vue dédiée
-        require_once APP_PATH . '/views/layout.php';
-    }
 }
 ?>

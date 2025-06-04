@@ -4,7 +4,7 @@
 ?>
 <h2>Gestion de Toutes les Annonces</h2>
 
-<?php // Les messages flash sont affichés par le layout ?>
+<?php // Les messages flash sont affichés par le layout (display_flash_messages()) ?>
 
 <?php if (!empty($products)): ?>
     <table>
@@ -22,9 +22,17 @@
                             <?php echo htmlspecialchars($product['title']); ?>
                         </a>
                     </td>
-                    <td><?php echo htmlspecialchars($product['seller_username']); ?></td>
+                    <td><?php echo htmlspecialchars(isset($product['seller_username']) ? $product['seller_username'] : 'N/A'); ?></td>
                     <td><?php echo htmlspecialchars(number_format($product['price'], 2, ',', ' ')); ?> €</td>
-                    <td><?php echo date('d/m/Y H:i', strtotime($product['created_at'])); ?></td>
+                    <td>
+                        <?php 
+                        if (isset($product['created_at']) && $product['created_at'] !== null) {
+                            echo date('d/m/Y H:i', strtotime($product['created_at'])); 
+                        } else {
+                            echo 'N/A'; 
+                        }
+                        ?>
+                    </td>
                     <td>
                         <?php if (!empty($product['image_path'])): ?>
                             <img class="admin-product-thumbnail" src="<?php echo PRODUCT_IMAGE_BASE_URL . htmlspecialchars($product['image_path']); ?>" alt="Aperçu">

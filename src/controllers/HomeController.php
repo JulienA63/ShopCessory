@@ -13,7 +13,7 @@ class HomeController {
                         FROM products p
                         JOIN users u ON p.user_id = u.id
                         ORDER BY p.created_at DESC 
-                        LIMIT 10"; // Afficher les 10 plus récents par exemple
+                        LIMIT 12";
                 $stmt = $pdo->query($sql);
                 if ($stmt) {
                     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);

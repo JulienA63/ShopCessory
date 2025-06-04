@@ -1,12 +1,6 @@
 <?php
-// Activation de l'affichage des erreurs pour le débogage
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 session_start(); // Démarrer ou reprendre une session existante
 
-// Définition des constantes de chemin
 define('ROOT_PATH', dirname(__DIR__));
 define('APP_PATH', ROOT_PATH . '/src');
 

@@ -1,5 +1,4 @@
 <?php
-// src/controllers/UserController.php
 
 class UserController {
 
